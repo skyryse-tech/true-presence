@@ -1,0 +1,8 @@
+# AI & Image Processing
+numpy
+opencv-python
+redis
+
+# If needed:
+deepface
+retina-facex

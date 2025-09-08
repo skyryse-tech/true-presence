@@ -1,0 +1,16 @@
+# Django and Web Framework
+django==4.2
+djangorestframework==3.14
+
+# Database
+psycopg2-binary==2.9.9
+pgvector==0.2.4
+
+# Caching
+django-redis==5.4.0
+
+# Message Queue
+pika==1.3.2
+
+# Environment Variables
+python-dotenv==1.0.1
