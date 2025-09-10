@@ -1,0 +1,2810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Attendance System - Architecture Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 18px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-tab.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .nav-tab.active:hover {
+            background: #0056b3;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px 30px;
+            min-height: 600px;
+            line-height: 1.6;
+        }
+
+        .tab-content h2 {
+            color: #2c3e50;
+            margin-bottom: 32px;
+            font-size: 2.2em;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 16px;
+        }
+
+        .tab-content h3 {
+            color: #2c3e50;
+            margin: 32px 0 20px 0;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .architecture-diagram {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .service-group {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 5px solid #007bff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .service-group:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+        }
+
+        .service-group h3 {
+            color: #2c3e50;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            font-size: 1.25em;
+            font-weight: 600;
+            line-height: 1.4;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .service-group .icon {
+            margin-right: 12px;
+            font-size: 1.4em;
+            min-width: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .service-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 48px;
+        }
+
+        .service-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .service-list li:first-child {
+            padding-top: 0;
+        }
+
+        .service-name {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.95em;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .service-tech {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+            min-width: 60px;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+        }
+
+        .data-flow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .flow-step {
+            background: white;
+            border: 2px solid #007bff;
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 220px;
+            max-width: 260px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+        }
+
+        .flow-step:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.25);
+        }
+
+        .flow-step h4 {
+            margin: 0 0 12px 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .flow-step p {
+            margin: 0;
+            font-size: 0.9em;
+            line-height: 1.4;
+            opacity: 0.8;
+        }
+
+        .flow-step:hover p {
+            opacity: 1;
+        }
+
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5em;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .tech-category {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+        }
+
+        .tech-category:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+        }
+
+        .tech-category h4 {
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .tech-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tech-list li {
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 40px;
+        }
+
+        .tech-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .tech-list li:first-child {
+            padding-top: 0;
+        }
+
+        .version {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+            min-width: 50px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .metric-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: #007bff;
+        }
+
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #007bff;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .security-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .security-card {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.25);
+        }
+
+        .security-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.35);
+        }
+
+        .security-card h4 {
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .security-card ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .security-card li {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.4;
+        }
+
+        .security-card li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .security-card li:first-child {
+            padding-top: 0;
+        }
+
+        .deployment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .deployment-option {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #28a745;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+        }
+
+        .deployment-option:hover {
+            background: #28a745;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.25);
+        }
+
+        .deployment-option h4 {
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .deployment-option ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .deployment-option li {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            line-height: 1.4;
+        }
+
+        .deployment-option:hover li {
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .deployment-option li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .deployment-option li:first-child {
+            padding-top: 0;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .data-flow {
+                flex-direction: column;
+            }
+            
+            .flow-step::after {
+                content: '↓';
+                right: 50%;
+                top: auto;
+                bottom: -25px;
+                transform: translateX(50%);
+            }
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        /* Roadmap Styles */
+        .roadmap-container {
+            margin: 20px 0;
+        }
+
+        .phase {
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .phase.active {
+            border-color: #007bff;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.1);
+        }
+
+        .phase.completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .phase-header {
+            background: #f8f9fa;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .phase.active .phase-header {
+            background: #007bff;
+            color: white;
+        }
+
+        .phase.completed .phase-header {
+            background: #28a745;
+            color: white;
+        }
+
+        .phase-header:hover {
+            background: #e9ecef;
+        }
+
+        .phase.active .phase-header:hover,
+        .phase.completed .phase-header:hover {
+            opacity: 0.9;
+        }
+
+        .phase-title h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.4em;
+        }
+
+        .phase-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .phase-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-active {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .phase-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .phase.expanded .phase-content {
+            display: block;
+        }
+
+        .phase-description {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .step-list {
+            margin: 20px 0;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .step h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .code-example pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .deliverables {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .deliverable {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .deliverable h5 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+
+        .getting-started {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .quick-start-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .quick-start-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .quick-start-item h4 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+        }
+
+        .quick-start-item pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Face Attendance System</h1>
+            <p>Enterprise-Grade Architecture for 4000+ Users</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('architecture')">Architecture</button>
+            <button class="nav-tab" onclick="showTab('dataflow')">Data Flow</button>
+            <button class="nav-tab" onclick="showTab('techstack')">Tech Stack</button>
+            <button class="nav-tab" onclick="showTab('security')">Security</button>
+            <button class="nav-tab" onclick="showTab('deployment')">Deployment</button>
+            <button class="nav-tab" onclick="showTab('roadmap')">Development Roadmap</button>
+        </div>
+
+        <!-- Architecture Tab -->
+        <div id="architecture" class="tab-content active">
+            <h2>System Architecture Overview</h2>
+            <div class="architecture-diagram">
+                <div class="service-group">
+                    <h3><span class="icon">Web</span>Frontend Layer</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Admin Dashboard</span><span class="service-tech">React</span></li>
+                        <li><span class="service-name">Enrollment App</span><span class="service-tech">React</span></li>
+                        <li><span class="service-name">Mobile App</span><span class="service-tech">React Native</span></li>
+                        <li><span class="service-name">Monitoring UI</span><span class="service-tech">Grafana</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">API</span>API Gateway</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Load Balancer</span><span class="service-tech">Nginx</span></li>
+                        <li><span class="service-name">Rate Limiting</span><span class="service-tech">Redis</span></li>
+                        <li><span class="service-name">Authentication</span><span class="service-tech">JWT</span></li>
+                        <li><span class="service-name">SSL Termination</span><span class="service-tech">TLS 1.3</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Backend</span>Backend Services</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">User Management</span><span class="service-tech">Django</span></li>
+                        <li><span class="service-name">Attendance API</span><span class="service-tech">DRF</span></li>
+                        <li><span class="service-name">Camera Management</span><span class="service-tech">Django</span></li>
+                        <li><span class="service-name">Reports Service</span><span class="service-tech">Django</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">AI</span>AI Services</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Face Detection</span><span class="service-tech">MTCNN</span></li>
+                        <li><span class="service-name">Face Recognition</span><span class="service-tech">ArcFace</span></li>
+                        <li><span class="service-name">Anti-Spoofing</span><span class="service-tech">CNN</span></li>
+                        <li><span class="service-name">Quality Assessment</span><span class="service-tech">Custom</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Data</span>Data Layer</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Primary Database</span><span class="service-tech">PostgreSQL</span></li>
+                        <li><span class="service-name">Vector Search</span><span class="service-tech">pgvector</span></li>
+                        <li><span class="service-name">Cache Layer</span><span class="service-tech">Redis</span></li>
+                        <li><span class="service-name">Message Queue</span><span class="service-tech">RabbitMQ</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Camera</span>Camera Layer</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">RTSP Streaming</span><span class="service-tech">FFmpeg</span></li>
+                        <li><span class="service-name">Edge Processing</span><span class="service-tech">Jetson</span></li>
+                        <li><span class="service-name">WebRTC</span><span class="service-tech">WebRTC</span></li>
+                        <li><span class="service-name">Camera Management</span><span class="service-tech">ONVIF</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Monitor</span>Monitoring</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Metrics</span><span class="service-tech">Prometheus</span></li>
+                        <li><span class="service-name">Dashboards</span><span class="service-tech">Grafana</span></li>
+                        <li><span class="service-name">Logging</span><span class="service-tech">ELK</span></li>
+                        <li><span class="service-name">Tracing</span><span class="service-tech">Jaeger</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Cloud</span>Infrastructure</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Orchestration</span><span class="service-tech">Kubernetes</span></li>
+                        <li><span class="service-name">Containers</span><span class="service-tech">Docker</span></li>
+                        <li><span class="service-name">Storage</span><span class="service-tech">MinIO</span></li>
+                        <li><span class="service-name">Networking</span><span class="service-tech">Istio</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Flow Tab -->
+        <div id="dataflow" class="tab-content">
+            <h2>Data Flow Architecture</h2>
+            
+            <h3>Face Enrollment Process</h3>
+            <div class="data-flow">
+                <div class="flow-step">
+                    <h4>Camera Capture</h4>
+                    <p>Multiple angles captured<br>Quality validation</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Face Detection</h4>
+                    <p>MTCNN preprocessing<br>Quality assessment</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Feature Extraction</h4>
+                    <p>ArcFace embeddings<br>512D vector generation</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Vector Storage</h4>
+                    <p>PostgreSQL + pgvector<br>Encrypted templates</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Index Creation</h4>
+                    <p>HNSW indexing<br>Fast similarity search</p>
+                </div>
+            </div>
+
+            <h3>Real-time Attendance Verification</h3>
+            <div class="data-flow">
+                <div class="flow-step">
+                    <h4>Camera Feed</h4>
+                    <p>RTSP/WebRTC stream<br>30 FPS processing</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Face Detection</h4>
+                    <p>MTCNN multi-face<br>Bounding box extraction</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Quality Check</h4>
+                    <p>Blur detection<br>Pose estimation</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Anti-Spoofing</h4>
+                    <p>Liveness detection<br>3D depth analysis</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Recognition</h4>
+                    <p>Vector similarity<br>Threshold matching</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Attendance Log</h4>
+                    <p>Database record<br>Real-time notification</p>
+                </div>
+            </div>
+
+            <h3>Batch Processing Workflow</h3>
+            <div class="data-flow">
+                <div class="flow-step">
+                    <h4>Queue Manager</h4>
+                    <p>RabbitMQ task queue<br>Priority scheduling</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Worker Allocation</h4>
+                    <p>Celery workers<br>GPU load balancing</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Batch Processing</h4>
+                    <p>Multiple face analysis<br>Parallel execution</p>
+                </div>
+                <div class="flow-step">
+                    <h4>Result Aggregation</h4>
+                    <p>Redis caching<br>Response compilation</p>
+                </div>
+            </div>
+
+            <div class="architecture-diagram">
+                <div class="service-group">
+                    <h3><span class="icon">Performance</span>Processing Metrics</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Detection Latency</span><span class="service-tech">< 10ms</span></li>
+                        <li><span class="service-name">Recognition Speed</span><span class="service-tech">< 5ms</span></li>
+                        <li><span class="service-name">End-to-End</span><span class="service-tech">< 2s</span></li>
+                        <li><span class="service-name">Throughput</span><span class="service-tech">1000+ FPS</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Cache</span>Caching Strategy</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Face Templates</span><span class="service-tech">Redis</span></li>
+                        <li><span class="service-name">User Sessions</span><span class="service-tech">Redis</span></li>
+                        <li><span class="service-name">Model Cache</span><span class="service-tech">Memory</span></li>
+                        <li><span class="service-name">Query Results</span><span class="service-tech">PostgreSQL</span></li>
+                    </ul>
+                </div>
+
+                <div class="service-group">
+                    <h3><span class="icon">Queue</span>Message Flow</h3>
+                    <ul class="service-list">
+                        <li><span class="service-name">Face Processing</span><span class="service-tech">RabbitMQ</span></li>
+                        <li><span class="service-name">Notifications</span><span class="service-tech">WebSocket</span></li>
+                        <li><span class="service-name">Reports</span><span class="service-tech">Celery</span></li>
+                        <li><span class="service-name">Backups</span><span class="service-tech">Cron</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack Tab -->
+        <div id="techstack" class="tab-content">
+            <h2>Complete Technology Stack</h2>
+            <div class="tech-stack">
+                <div class="tech-category">
+                    <h4>Frontend Technologies</h4>
+                    <ul class="tech-list">
+                        <li>React <span class="version">18+</span></li>
+                        <li>TypeScript <span class="version">5.0+</span></li>
+                        <li>Material-UI <span class="version">5.x</span></li>
+                        <li>Redux Toolkit <span class="version">1.9+</span></li>
+                        <li>React Native <span class="version">0.72+</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>Backend Framework</h4>
+                    <ul class="tech-list">
+                        <li>Django <span class="version">4.2+</span></li>
+                        <li>Django REST Framework <span class="version">3.14+</span></li>
+                        <li>Celery <span class="version">5.3+</span></li>
+                        <li>Django Channels <span class="version">4.0+</span></li>
+                        <li>Gunicorn <span class="version">21.x</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>AI/ML Stack</h4>
+                    <ul class="tech-list">
+                        <li>PyTorch <span class="version">2.0+</span></li>
+                        <li>OpenCV <span class="version">4.8+</span></li>
+                        <li>DeepFace <span class="version">0.0.79+</span></li>
+                        <li>MTCNN <span class="version">0.1.1+</span></li>
+                        <li>TensorRT <span class="version">8.6+</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>Database & Storage</h4>
+                    <ul class="tech-list">
+                        <li>PostgreSQL <span class="version">15+</span></li>
+                        <li>pgvector <span class="version">0.4+</span></li>
+                        <li>Redis <span class="version">7.0+</span></li>
+                        <li>MinIO <span class="version">2023+</span></li>
+                        <li>InfluxDB <span class="version">2.7+</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>Message Queue</h4>
+                    <ul class="tech-list">
+                        <li>RabbitMQ <span class="version">3.11+</span></li>
+                        <li>Apache Kafka <span class="version">3.5+</span></li>
+                        <li>Redis Pub/Sub <span class="version">7.0+</span></li>
+                        <li>Celery Beat <span class="version">5.3+</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>Infrastructure</h4>
+                    <ul class="tech-list">
+                        <li>Docker <span class="version">24+</span></li>
+                        <li>Kubernetes <span class="version">1.27+</span></li>
+                        <li>Nginx <span class="version">1.24+</span></li>
+                        <li>Helm <span class="version">3.12+</span></li>
+                        <li>Istio <span class="version">1.18+</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>Monitoring</h4>
+                    <ul class="tech-list">
+                        <li>Prometheus <span class="version">2.45+</span></li>
+                        <li>Grafana <span class="version">10.0+</span></li>
+                        <li>Elasticsearch <span class="version">8.8+</span></li>
+                        <li>Kibana <span class="version">8.8+</span></li>
+                        <li>Jaeger <span class="version">1.47+</span></li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h4>Security</h4>
+                    <ul class="tech-list">
+                        <li>JWT <span class="version">PyJWT 2.8+</span></li>
+                        <li>OAuth 2.0 <span class="version">Authlib</span></li>
+                        <li>HashiCorp Vault <span class="version">1.14+</span></li>
+                        <li>Let's Encrypt <span class="version">TLS 1.3</span></li>
+                        <li>Fail2ban <span class="version">1.0+</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="security" class="tab-content">
+            <h2>Enterprise Security Architecture</h2>
+            
+            <div class="security-features">
+                <div class="security-card">
+                    <h4>Authentication & Authorization</h4>
+                    <ul>
+                        <li>JWT token-based authentication (RSA-256)</li>
+                        <li>Role-based access control (Admin, Manager, User)</li>
+                        <li>Multi-factor authentication with TOTP</li>
+                        <li>Session management with Redis</li>
+                        <li>OAuth 2.0 with PKCE flow</li>
+                        <li>API key management for integrations</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <h4>Data Protection & Privacy</h4>
+                    <ul>
+                        <li>AES-256-GCM encryption at rest</li>
+                        <li>TLS 1.3 with forward secrecy</li>
+                        <li>Database column-level encryption</li>
+                        <li>HashiCorp Vault key management</li>
+                        <li>Face template hashing (irreversible)</li>
+                        <li>GDPR-compliant data handling</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <h4>Advanced Anti-Spoofing</h4>
+                    <ul>
+                        <li>CNN-based liveness detection (99.8% accuracy)</li>
+                        <li>3D depth analysis with stereo cameras</li>
+                        <li>Texture analysis for photo/video detection</li>
+                        <li>Eye blink and micro-movement detection</li>
+                        <li>Challenge-response protocols</li>
+                        <li>Infrared spectrum analysis</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <h4>Threat Detection & Response</h4>
+                    <ul>
+                        <li>Real-time anomaly detection with ML</li>
+                        <li>IDS/IPS with custom rules</li>
+                        <li>Security audit logging (SIEM integration)</li>
+                        <li>Automated vulnerability scanning</li>
+                        <li>Penetration testing quarterly</li>
+                        <li>Incident response automation</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <h4>Network & Infrastructure</h4>
+                    <ul>
+                        <li>WAF with OWASP Top 10 protection</li>
+                        <li>DDoS mitigation (Layer 3-7)</li>
+                        <li>Rate limiting per endpoint</li>
+                        <li>IP geofencing and whitelisting</li>
+                        <li>VPN-only admin access</li>
+                        <li>Network segmentation with microsegmentation</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <h4>Compliance & Governance</h4>
+                    <ul>
+                        <li>GDPR Article 25 compliance (Privacy by Design)</li>
+                        <li>SOC 2 Type II certification</li>
+                        <li>ISO 27001:2013 standards</li>
+                        <li>CCPA and PIPEDA compliance</li>
+                        <li>Data retention policies (7-year default)</li>
+                        <li>Right to erasure implementation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Security Monitoring Dashboard</h3>
+            <div class="performance-metrics">
+                <div class="metric-card">
+                    <div class="metric-value">99.9%</div>
+                    <div class="metric-label">Security Score</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Active Threats</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">24/7</div>
+                    <div class="metric-label">Monitoring</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">< 1min</div>
+                    <div class="metric-label">Incident Response</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deployment Tab -->
+        <div id="deployment" class="tab-content">
+            <h2>Deployment Options</h2>
+            
+            <div class="deployment-grid">
+                <div class="deployment-option">
+                    <h4>Cloud Deployment (AWS)</h4>
+                    <ul>
+                        <li>EKS for Kubernetes</li>
+                        <li>RDS for PostgreSQL</li>
+                        <li>ElastiCache for Redis</li>
+                        <li>S3 for storage</li>
+                        <li>CloudFront CDN</li>
+                        <li>Application Load Balancer</li>
+                    </ul>
+                </div>
+
+                <div class="deployment-option">
+                    <h4>On-Premises</h4>
+                    <ul>
+                        <li>Kubernetes cluster</li>
+                        <li>High-performance servers</li>
+                        <li>GPU workstations</li>
+                        <li>Network infrastructure</li>
+                        <li>Storage arrays</li>
+                        <li>Backup systems</li>
+                    </ul>
+                </div>
+
+                <div class="deployment-option">
+                    <h4>Hybrid Cloud</h4>
+                    <ul>
+                        <li>Edge computing nodes</li>
+                        <li>Cloud burst capabilities</li>
+                        <li>Data synchronization</li>
+                        <li>Disaster recovery</li>
+                        <li>Compliance zones</li>
+                        <li>Multi-region setup</li>
+                    </ul>
+                </div>
+
+                <div class="deployment-option">
+                    <h4>Edge Deployment</h4>
+                    <ul>
+                        <li>NVIDIA Jetson devices</li>
+                        <li>Intel NUCs</li>
+                        <li>Coral TPU</li>
+                        <li>Local processing</li>
+                        <li>Reduced latency</li>
+                        <li>Offline capabilities</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>Quick Start Commands</h3>
+                <pre><code># Clone repository
+git clone https://github.com/skyryse-tech/true-presence.git
+
+# Start development environment
+docker-compose -f docker-compose.dev.yml up -d
+
+# Initialize database
+docker-compose exec web python manage.py migrate
+
+# Create superuser
+docker-compose exec web python manage.py createsuperuser
+
+# Start AI workers
+docker-compose exec ai-worker python worker.py
+
+# Access admin panel
+http://localhost:8000/admin/</code></pre>
+            </div>
+        </div>
+
+        <!-- Development Roadmap Tab -->
+        <div id="roadmap" class="tab-content">
+            <h2>Development Roadmap</h2>
+            <p>Step-by-step guide to building the face attendance system incrementally, starting with basic features and scaling to enterprise-grade functionality.</p>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="roadmapProgress" style="width: 0%;"></div>
+            </div>
+            
+            <div class="roadmap-container">
+                <!-- Phase 1: Basic Face Detection -->
+                <div class="phase" data-phase="1">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(1)">
+                        <div class="phase-title">
+                            <h3>Phase 1: Basic Face Detection</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 3-5 days</span>
+                                <span>Difficulty: Basic</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-active">START HERE</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Create a minimal Django project with basic face detection capability using MTCNN.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Setup Development Environment</h4>
+                                <p>Create basic Django project structure with essential dependencies.</p>
+                                <div class="code-example">
+                                    <pre><code># requirements.txt (Minimal)
+Django==4.2.7
+opencv-python==4.8.1.78
+mtcnn==0.1.1
+Pillow==10.1.0</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Implement Face Detection</h4>
+                                <p>Build simple face detection service using MTCNN library.</p>
+                                <div class="code-example">
+                                    <pre><code># face_app/face_detector.py
+import cv2
+from mtcnn import MTCNN
+
+class SimpleFaceDetector:
+    def __init__(self):
+        self.detector = MTCNN()
+    
+    def detect_faces(self, image_path):
+        image = cv2.imread(image_path)
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        faces = self.detector.detect_faces(image_rgb)
+        return len(faces)</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. Create Web Interface</h4>
+                                <p>Build simple upload form to test face detection functionality.</p>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Test and Validate</h4>
+                                <p>Test with various images and scenarios to ensure reliability.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>Working Web App</h5>
+                                <p>Simple upload interface for testing</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Face Detection</h5>
+                                <p>MTCNN integration working</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Basic Results</h5>
+                                <p>Face count and visualization</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Face Recognition -->
+                <div class="phase" data-phase="2">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(2)">
+                        <div class="phase-title">
+                            <h3>Phase 2: Face Recognition & User Management</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 5-7 days</span>
+                                <span>Difficulty: Intermediate</span>
+                                <span>Dependencies: Phase 1</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-pending">NEXT</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Add face recognition capabilities with user enrollment, database storage, and basic matching algorithms.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Database Schema Design</h4>
+                                <p>Create comprehensive models for users, face templates, and attendance records.</p>
+                                <div class="code-example">
+                                    <pre><code># models.py
+from django.db import models
+import numpy as np
+
+class User(models.Model):
+    employee_id = models.CharField(max_length=20, unique=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    department = models.CharField(max_length=100)
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+class FaceTemplate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    embedding = models.JSONField()  # 512D vector
+    created_at = models.DateTimeField(auto_now_add=True)
+    confidence_score = models.FloatField()
+    
+class AttendanceRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    confidence = models.FloatField()
+    camera_id = models.CharField(max_length=50)</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Face Recognition Engine</h4>
+                                <p>Implement DeepFace/ArcFace for generating embeddings and similarity calculations.</p>
+                                <div class="code-example">
+                                    <pre><code># face_recognition.py
+from deepface import DeepFace
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+
+class FaceRecognitionEngine:
+    def __init__(self):
+        self.model_name = 'ArcFace'
+        self.threshold = 0.4
+    
+    def generate_embedding(self, image_path):
+        embedding = DeepFace.represent(
+            img_path=image_path, 
+            model_name=self.model_name
+        )
+        return np.array(embedding[0]['embedding'])
+    
+    def compare_faces(self, embedding1, embedding2):
+        similarity = cosine_similarity([embedding1], [embedding2])[0][0]
+        return similarity > self.threshold, similarity</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. User Enrollment System</h4>
+                                <p>Build comprehensive enrollment workflow with multiple face captures and validation.</p>
+                                <div class="code-example">
+                                    <pre><code># enrollment_service.py
+class EnrollmentService:
+    def __init__(self):
+        self.face_engine = FaceRecognitionEngine()
+        self.min_images = 3
+        self.max_images = 5
+    
+    def enroll_user(self, user_data, image_files):
+        # Validate minimum images
+        if len(image_files) < self.min_images:
+            raise ValueError("Minimum 3 images required")
+        
+        # Create user
+        user = User.objects.create(**user_data)
+        
+        # Process each image
+        embeddings = []
+        for image in image_files:
+            embedding = self.face_engine.generate_embedding(image)
+            embeddings.append(embedding)
+        
+        # Calculate average embedding
+        avg_embedding = np.mean(embeddings, axis=0)
+        
+        # Store face template
+        FaceTemplate.objects.create(
+            user=user,
+            embedding=avg_embedding.tolist(),
+            confidence_score=self._calculate_quality(embeddings)
+        )
+        
+        return user</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Recognition & Matching System</h4>
+                                <p>Implement face matching against enrolled database with confidence scoring.</p>
+                                <div class="code-example">
+                                    <pre><code># recognition_service.py
+class RecognitionService:
+                                        
+    def recognize_face(self, image_path):
+        # Generate embedding for input image
+        input_embedding = self.face_engine.generate_embedding(image_path)
+        
+        # Get all face templates
+        templates = FaceTemplate.objects.filter(user__is_active=True)
+        
+        best_match = None
+        highest_confidence = 0
+        
+        for template in templates:
+            stored_embedding = np.array(template.embedding)
+            is_match, confidence = self.face_engine.compare_faces(
+                input_embedding, stored_embedding
+            )
+            
+            if is_match and confidence > highest_confidence:
+                highest_confidence = confidence
+                best_match = template.user
+        
+        return best_match, highest_confidence</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>5. API Endpoints Development</h4>
+                                <p>Create RESTful APIs for enrollment and recognition operations.</p>
+                                <div class="code-example">
+                                    <pre><code># views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class EnrollmentView(APIView):
+    def post(self, request):
+        user_data = request.data.get('user_data')
+        images = request.FILES.getlist('images')
+        
+        enrollment_service = EnrollmentService()
+        user = enrollment_service.enroll_user(user_data, images)
+        
+        return Response({
+            'status': 'success',
+            'user_id': user.id,
+            'employee_id': user.employee_id
+        })
+
+class RecognitionView(APIView):
+    def post(self, request):
+        image = request.FILES.get('image')
+        
+        recognition_service = RecognitionService()
+        user, confidence = recognition_service.recognize_face(image)
+        
+        if user:
+            return Response({
+                'recognized': True,
+                'user_id': user.employee_id,
+                'name': f"{user.first_name} {user.last_name}",
+                'confidence': confidence
+            })
+        else:
+            return Response({'recognized': False})</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>User Management</h5>
+                                <p>Complete CRUD operations for users</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Face Templates</h5>
+                                <p>Secure storage of face embeddings</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Recognition API</h5>
+                                <p>RESTful endpoints for enrollment/recognition</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Database Schema</h5>
+                                <p>Optimized models for face data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3: Attendance System -->
+                <div class="phase" data-phase="3">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(3)">
+                        <div class="phase-title">
+                            <h3>Phase 3: Complete Attendance System</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 4-6 days</span>
+                                <span>Difficulty: Intermediate</span>
+                                <span>Dependencies: Phase 2</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-pending">UPCOMING</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Build complete attendance logging system with admin interface, reporting, and basic analytics.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Attendance Logic Implementation</h4>
+                                <p>Smart attendance recording with duplicate detection and business rules.</p>
+                                <div class="code-example">
+                                    <pre><code># attendance_service.py
+from datetime import datetime, timedelta
+
+class AttendanceService:
+    def __init__(self):
+        self.check_in_window = timedelta(hours=2)  # 2-hour window
+        self.check_out_window = timedelta(hours=1)
+    
+    def record_attendance(self, user, confidence, camera_id):
+        now = datetime.now()
+        today_start = now.replace(hour=0, minute=0, second=0)
+        
+        # Check for existing attendance today
+        existing = AttendanceRecord.objects.filter(
+            user=user,
+            timestamp__gte=today_start
+        ).order_by('-timestamp').first()
+        
+        # Determine attendance type
+        if not existing:
+            attendance_type = 'CHECK_IN'
+        elif (now - existing.timestamp) > self.check_in_window:
+            attendance_type = 'CHECK_OUT'
+        else:
+            return None  # Too soon for another record
+        
+        # Create attendance record
+        record = AttendanceRecord.objects.create(
+            user=user,
+            timestamp=now,
+            confidence=confidence,
+            camera_id=camera_id,
+            attendance_type=attendance_type
+        )
+        
+        return record</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Admin Dashboard Development</h4>
+                                <p>Django admin interface with custom views for attendance management.</p>
+                                <div class="code-example">
+                                    <pre><code># admin.py
+from django.contrib import admin
+from django.utils.html import format_html
+
+@admin.register(AttendanceRecord)
+class AttendanceAdmin(admin.ModelAdmin):
+    list_display = ['user', 'timestamp', 'attendance_type', 
+                   'confidence_badge', 'camera_id']
+    list_filter = ['attendance_type', 'timestamp', 'camera_id']
+    search_fields = ['user__employee_id', 'user__first_name', 'user__last_name']
+    date_hierarchy = 'timestamp'
+    
+    def confidence_badge(self, obj):
+        color = 'green' if obj.confidence > 0.8 else 'orange'
+        return format_html(
+            '&lt;span style="color: {};"&gt;{:.2%}&lt;/span&gt;',
+            color, obj.confidence
+        )
+    confidence_badge.short_description = 'Confidence'</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. Reporting System</h4>
+                                <p>Generate attendance reports with filtering and export capabilities.</p>
+                                <div class="code-example">
+                                    <pre><code># reports.py
+import pandas as pd
+from django.http import HttpResponse
+
+class AttendanceReporter:
+    def generate_daily_report(self, date, department=None):
+        queryset = AttendanceRecord.objects.filter(
+            timestamp__date=date
+        )
+        
+        if department:
+            queryset = queryset.filter(user__department=department)
+        
+        data = []
+        for record in queryset:
+            data.append({
+                'Employee ID': record.user.employee_id,
+                'Name': f"{record.user.first_name} {record.user.last_name}",
+                'Department': record.user.department,
+                'Time': record.timestamp.time(),
+                'Type': record.attendance_type,
+                'Confidence': f"{record.confidence:.2%}"
+            })
+        
+        df = pd.DataFrame(data)
+        return df
+    
+    def export_to_excel(self, df, filename):
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        df.to_excel(response, index=False)
+        return response</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Basic Analytics Dashboard</h4>
+                                <p>Simple analytics with attendance trends and department statistics.</p>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>5. Notification System</h4>
+                                <p>Email/SMS notifications for administrators and managers.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>Attendance Logic</h5>
+                                <p>Smart check-in/out detection</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Admin Interface</h5>
+                                <p>Full management dashboard</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Report Generator</h5>
+                                <p>Excel/PDF export functionality</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Basic Analytics</h5>
+                                <p>Attendance trends and statistics</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4: Real-time Camera Integration -->
+                <div class="phase" data-phase="4">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(4)">
+                        <div class="phase-title">
+                            <h3>Phase 4: Real-time Camera Integration</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 6-8 days</span>
+                                <span>Difficulty: Advanced</span>
+                                <span>Dependencies: Phase 3</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-pending">ADVANCED</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Implement real-time face recognition from camera feeds with live streaming and automatic attendance logging.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Camera Management System</h4>
+                                <p>RTSP stream handling and camera configuration management.</p>
+                                <div class="code-example">
+                                    <pre><code># camera_manager.py
+import cv2
+import threading
+from queue import Queue
+
+class CameraManager:
+    def __init__(self):
+        self.cameras = {}
+        self.streams = {}
+        
+    def add_camera(self, camera_id, rtsp_url):
+        self.cameras[camera_id] = {
+            'url': rtsp_url,
+            'status': 'disconnected',
+            'last_frame': None
+        }
+        
+    def start_stream(self, camera_id):
+        if camera_id not in self.cameras:
+            raise ValueError("Camera not found")
+            
+        cap = cv2.VideoCapture(self.cameras[camera_id]['url'])
+        
+        def stream_worker():
+            while True:
+                ret, frame = cap.read()
+                if ret:
+                    self.cameras[camera_id]['last_frame'] = frame
+                    self.cameras[camera_id]['status'] = 'connected'
+                    yield frame
+                else:
+                    self.cameras[camera_id]['status'] = 'disconnected'
+                    
+        self.streams[camera_id] = stream_worker()
+        return self.streams[camera_id]</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Real-time Processing Pipeline</h4>
+                                <p>Multi-threaded processing for continuous face detection and recognition.</p>
+                                <div class="code-example">
+                                    <pre><code># real_time_processor.py
+import cv2
+import threading
+from queue import Queue
+import time
+
+class RealTimeProcessor:
+    def __init__(self):
+        self.face_detector = FaceDetector()
+        self.recognition_engine = FaceRecognitionEngine()
+        self.attendance_service = AttendanceService()
+        self.frame_queue = Queue(maxsize=10)
+        self.result_queue = Queue()
+        
+    def process_frame(self, frame, camera_id):
+        # Detect faces in frame
+        faces = self.face_detector.detect_faces(frame)
+        
+        results = []
+        for face in faces:
+            # Extract face region
+            face_img = frame[face['y']:face['y']+face['h'], 
+                           face['x']:face['x']+face['w']]
+            
+            # Recognize face
+            user, confidence = self.recognition_engine.recognize_face(face_img)
+            
+            if user and confidence > 0.7:
+                # Record attendance
+                record = self.attendance_service.record_attendance(
+                    user, confidence, camera_id
+                )
+                
+                results.append({
+                    'user': user,
+                    'confidence': confidence,
+                    'bbox': face,
+                    'attendance_recorded': record is not None
+                })
+                
+        return results
+        
+    def start_processing(self, camera_id):
+        def worker():
+            while True:
+                if not self.frame_queue.empty():
+                    frame = self.frame_queue.get()
+                    results = self.process_frame(frame, camera_id)
+                    self.result_queue.put(results)
+                time.sleep(0.1)
+                
+        thread = threading.Thread(target=worker)
+        thread.daemon = True
+        thread.start()</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. WebRTC Integration</h4>
+                                <p>Real-time video streaming to web browsers with low latency.</p>
+                                <div class="code-example">
+                                    <pre><code># webrtc_streamer.py
+from aiortc import RTCPeerConnection, RTCSessionDescription
+from aiortc.contrib.media import MediaPlayer
+import asyncio
+
+class WebRTCStreamer:
+    def __init__(self):
+        self.peer_connections = {}
+        
+    async def handle_offer(self, camera_id, offer):
+        pc = RTCPeerConnection()
+        self.peer_connections[camera_id] = pc
+        
+        # Add video track from camera
+        player = MediaPlayer(f"camera:{camera_id}")
+        pc.addTrack(player.video)
+        
+        # Set remote description
+        await pc.setRemoteDescription(offer)
+        
+        # Create answer
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+        
+        return answer</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Live Dashboard</h4>
+                                <p>Real-time monitoring dashboard with live camera feeds and attendance updates.</p>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>5. WebSocket Notifications</h4>
+                                <p>Real-time notifications for attendance events using Django Channels.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>Camera Integration</h5>
+                                <p>RTSP stream processing</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Real-time Processing</h5>
+                                <p>Multi-threaded face recognition</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Live Streaming</h5>
+                                <p>WebRTC browser integration</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Live Dashboard</h5>
+                                <p>Real-time monitoring interface</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 5: Performance & Scaling -->
+                <div class="phase" data-phase="5">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(5)">
+                        <div class="phase-title">
+                            <h3>Phase 5: Performance Optimization & Scaling</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 7-10 days</span>
+                                <span>Difficulty: Expert</span>
+                                <span>Dependencies: Phase 4</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-pending">EXPERT</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Optimize system performance for 1000+ concurrent users with advanced caching, GPU acceleration, and horizontal scaling.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Database Optimization</h4>
+                                <p>Implement PostgreSQL with pgvector for efficient similarity search and database optimization.</p>
+                                <div class="code-example">
+                                    <pre><code># Optimized models with pgvector
+from pgvector.django import VectorField
+from django.db import models
+
+class OptimizedFaceTemplate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    embedding = VectorField(dimensions=512)  # pgvector field
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+            # HNSW index for vector similarity
+            models.Index(
+                name='embedding_hnsw_idx',
+                fields=['embedding'],
+                opclasses=['vector_cosine_ops']
+            )
+        ]
+
+# Optimized similarity search
+def find_similar_faces(query_embedding, limit=10):
+    return OptimizedFaceTemplate.objects.annotate(
+        distance=models.ExpressionWrapper(
+            query_embedding.cosine_distance('embedding'),
+            output_field=models.FloatField()
+        )
+    ).order_by('distance')[:limit]</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Redis Caching Strategy</h4>
+                                <p>Implement comprehensive caching for face templates, user sessions, and recognition results.</p>
+                                <div class="code-example">
+                                    <pre><code># caching_service.py
+import redis
+import pickle
+import numpy as np
+from django.core.cache import cache
+
+class FaceCacheService:
+    def __init__(self):
+        self.redis_client = redis.Redis(
+            host='localhost', port=6379, db=0,
+            decode_responses=False  # For binary data
+        )
+        self.cache_ttl = 3600  # 1 hour
+        
+    def cache_user_templates(self, user_id):
+        cache_key = f"user_templates:{user_id}"
+        
+        templates = FaceTemplate.objects.filter(user_id=user_id)
+        embeddings = [np.array(t.embedding) for t in templates]
+        
+        # Cache embeddings as binary
+        self.redis_client.setex(
+            cache_key, 
+            self.cache_ttl, 
+            pickle.dumps(embeddings)
+        )
+        
+    def get_cached_templates(self, user_id):
+        cache_key = f"user_templates:{user_id}"
+        cached_data = self.redis_client.get(cache_key)
+        
+        if cached_data:
+            return pickle.loads(cached_data)
+        return None
+        
+    def cache_recognition_result(self, image_hash, user_id, confidence):
+        cache_key = f"recognition:{image_hash}"
+        result = {'user_id': user_id, 'confidence': confidence}
+        
+        self.redis_client.setex(
+            cache_key, 
+            300,  # 5 minutes
+            pickle.dumps(result)
+        )</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. GPU Acceleration</h4>
+                                <p>Implement CUDA acceleration and TensorRT optimization for AI models.</p>
+                                <div class="code-example">
+                                    <pre><code># gpu_optimizer.py
+import torch
+import tensorrt as trt
+import numpy as np
+
+class GPUOptimizedRecognition:
+    def __init__(self):
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = self.load_optimized_model()
+        
+    def load_optimized_model(self):
+        # Load TensorRT optimized model
+        if self.device.type == 'cuda':
+            try:
+                # Load TensorRT engine
+                engine = self.load_tensorrt_engine('arcface_optimized.trt')
+                return engine
+            except:
+                # Fallback to PyTorch model
+                model = torch.jit.load('arcface_traced.pt')
+                model.to(self.device)
+                return model
+                
+    def batch_process_faces(self, face_images, batch_size=32):
+        """Process multiple faces in batches for efficiency"""
+        embeddings = []
+        
+        for i in range(0, len(face_images), batch_size):
+            batch = face_images[i:i+batch_size]
+            
+            # Convert to tensor and move to GPU
+            batch_tensor = torch.stack([
+                self.preprocess_face(img) for img in batch
+            ]).to(self.device)
+            
+            # Generate embeddings
+            with torch.no_grad():
+                batch_embeddings = self.model(batch_tensor)
+                embeddings.extend(batch_embeddings.cpu().numpy())
+                
+        return embeddings</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Message Queue Implementation</h4>
+                                <p>Implement RabbitMQ with Celery for asynchronous task processing.</p>
+                                <div class="code-example">
+                                    <pre><code># celery_tasks.py
+from celery import Celery
+from celery.result import AsyncResult
+
+app = Celery('face_attendance')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+@app.task(bind=True, max_retries=3)
+def process_face_recognition(self, image_data, camera_id):
+    try:
+        # Process face recognition
+        processor = RealTimeProcessor()
+        results = processor.process_frame(image_data, camera_id)
+        
+        # Send real-time notifications
+        for result in results:
+            if result['attendance_recorded']:
+                send_attendance_notification.delay(
+                    result['user'].id, 
+                    camera_id
+                )
+                
+        return {
+            'status': 'success',
+            'faces_detected': len(results),
+            'attendance_recorded': sum(1 for r in results if r['attendance_recorded'])
+        }
+        
+    except Exception as exc:
+        # Retry on failure
+        raise self.retry(exc=exc, countdown=60)
+
+@app.task
+def send_attendance_notification(user_id, camera_id):
+    # Send WebSocket notification
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"attendance_updates",
+        {
+            'type': 'attendance_update',
+            'user_id': user_id,
+            'camera_id': camera_id,
+            'timestamp': timezone.now().isoformat()
+        }
+    )</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>5. Load Balancing & Auto-scaling</h4>
+                                <p>Configure Nginx load balancing and Kubernetes horizontal pod autoscaling.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>Vector Database</h5>
+                                <p>pgvector optimization</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>GPU Acceleration</h5>
+                                <p>TensorRT optimization</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Caching Layer</h5>
+                                <p>Redis implementation</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Message Queue</h5>
+                                <p>RabbitMQ + Celery</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 6: Security & Production -->
+                <div class="phase" data-phase="6">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(6)">
+                        <div class="phase-title">
+                            <h3>Phase 6: Enterprise Security & Production Deployment</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 8-12 days</span>
+                                <span>Difficulty: Expert</span>
+                                <span>Dependencies: Phase 5</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-pending">PRODUCTION</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Implement enterprise-grade security, anti-spoofing protection, monitoring, and production deployment for 4000+ users.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Advanced Anti-Spoofing System</h4>
+                                <p>Implement CNN-based liveness detection with multiple verification methods.</p>
+                                <div class="code-example">
+                                    <pre><code># anti_spoofing.py
+import cv2
+import numpy as np
+import torch
+import torch.nn as nn
+
+class LivenessDetector:
+    def __init__(self):
+        self.model = self.load_liveness_model()
+        self.depth_analyzer = DepthAnalyzer()
+        self.texture_analyzer = TextureAnalyzer()
+        
+    def detect_liveness(self, image, depth_map=None):
+        results = {}
+        
+        # CNN-based liveness detection
+        liveness_score = self.cnn_liveness_check(image)
+        results['cnn_score'] = liveness_score
+        
+        # Texture analysis for printed photos
+        texture_score = self.texture_analyzer.analyze(image)
+        results['texture_score'] = texture_score
+        
+        # 3D depth analysis if available
+        if depth_map is not None:
+            depth_score = self.depth_analyzer.analyze(depth_map)
+            results['depth_score'] = depth_score
+        
+        # Eye blink detection
+        blink_score = self.detect_eye_blink(image)
+        results['blink_score'] = blink_score
+        
+        # Combine scores
+        final_score = self.combine_scores(results)
+        is_live = final_score > 0.7
+        
+        return is_live, final_score, results
+        
+    def cnn_liveness_check(self, image):
+        # Preprocess image
+        processed = self.preprocess_for_liveness(image)
+        
+        # Run inference
+        with torch.no_grad():
+            output = self.model(processed)
+            probability = torch.softmax(output, dim=1)
+            
+        return probability[0][1].item()  # Live probability</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Authentication & Authorization System</h4>
+                                <p>Implement JWT-based authentication with role-based access control and MFA.</p>
+                                <div class="code-example">
+                                    <pre><code># auth_system.py
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import AbstractUser
+import pyotp
+import qrcode
+
+class CustomUser(AbstractUser):
+    employee_id = models.CharField(max_length=20, unique=True)
+    department = models.CharField(max_length=100)
+    role = models.CharField(max_length=50, default='USER')
+    mfa_secret = models.CharField(max_length=32, blank=True)
+    is_mfa_enabled = models.BooleanField(default=False)
+
+class AuthenticationService:
+    def __init__(self):
+        self.failed_attempts = {}
+        self.lockout_duration = 300  # 5 minutes
+        
+    def authenticate_with_mfa(self, username, password, mfa_token=None):
+        # Check for account lockout
+        if self.is_locked_out(username):
+            raise AuthenticationError("Account temporarily locked")
+            
+        # Basic authentication
+        user = authenticate(username=username, password=password)
+        if not user:
+            self.record_failed_attempt(username)
+            raise AuthenticationError("Invalid credentials")
+            
+        # MFA verification if enabled
+        if user.is_mfa_enabled:
+            if not mfa_token:
+                raise MFARequiredError("MFA token required")
+                
+            if not self.verify_mfa_token(user, mfa_token):
+                self.record_failed_attempt(username)
+                raise AuthenticationError("Invalid MFA token")
+                
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        return {
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh),
+            'user': user
+        }
+        
+    def setup_mfa(self, user):
+        secret = pyotp.random_base32()
+        user.mfa_secret = secret
+        user.save()
+        
+        # Generate QR code
+        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+            name=user.username,
+            issuer_name="Face Attendance System"
+        )
+        
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(totp_uri)
+        qr.make(fit=True)
+        
+        return qr.make_image(), secret</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. Security Monitoring & Audit</h4>
+                                <p>Comprehensive security logging and real-time threat detection.</p>
+                                <div class="code-example">
+                                    <pre><code># security_monitor.py
+import logging
+from django.contrib.auth.signals import user_logged_in, user_login_failed
+from django.dispatch import receiver
+import geoip2.database
+
+class SecurityMonitor:
+    def __init__(self):
+        self.logger = logging.getLogger('security')
+        self.geoip_reader = geoip2.database.Reader('GeoLite2-City.mmdb')
+        self.threat_detector = ThreatDetector()
+        
+    def log_security_event(self, event_type, user, request, **kwargs):
+        # Extract client information
+        ip_address = self.get_client_ip(request)
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        # Get location from IP
+        try:
+            location = self.geoip_reader.city(ip_address)
+            country = location.country.name
+            city = location.city.name
+        except:
+            country = city = 'Unknown'
+            
+        # Create security log entry
+        SecurityLog.objects.create(
+            event_type=event_type,
+            user=user,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            country=country,
+            city=city,
+            timestamp=timezone.now(),
+            details=kwargs
+        )
+        
+        # Check for threats
+        self.threat_detector.analyze_event(event_type, ip_address, user)
+
+@receiver(user_login_failed)
+def log_failed_login(sender, credentials, request, **kwargs):
+    monitor = SecurityMonitor()
+    monitor.log_security_event(
+        'LOGIN_FAILED',
+        None,
+        request,
+        attempted_username=credentials.get('username')
+    )</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Data Encryption & Privacy</h4>
+                                <p>End-to-end encryption for sensitive data with GDPR compliance.</p>
+                                <div class="code-example">
+                                    <pre><code># encryption_service.py
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import os
+import base64
+
+class EncryptionService:
+    def __init__(self):
+        self.key = self.load_or_generate_key()
+        self.cipher = Fernet(self.key)
+        
+    def encrypt_face_template(self, embedding):
+        """Encrypt face embedding before storage"""
+        embedding_bytes = np.array(embedding).tobytes()
+        encrypted = self.cipher.encrypt(embedding_bytes)
+        return base64.b64encode(encrypted).decode()
+        
+    def decrypt_face_template(self, encrypted_embedding):
+        """Decrypt face embedding for comparison"""
+        encrypted_bytes = base64.b64decode(encrypted_embedding)
+        decrypted = self.cipher.decrypt(encrypted_bytes)
+        return np.frombuffer(decrypted, dtype=np.float32)
+        
+    def anonymize_user_data(self, user_data):
+        """Anonymize user data for analytics while preserving utility"""
+        anonymized = {}
+        
+        # Hash sensitive identifiers
+        anonymized['employee_hash'] = self.hash_identifier(user_data['employee_id'])
+        anonymized['department'] = user_data['department']  # Keep for analytics
+        anonymized['registration_month'] = user_data['created_at'].strftime('%Y-%m')
+        
+        return anonymized
+        
+    def implement_right_to_erasure(self, user_id):
+        """GDPR Article 17 - Right to erasure implementation"""
+        # Encrypt user data with temporary key
+        temp_key = Fernet.generate_key()
+        
+        # Delete the temporary key (effectively making data unrecoverable)
+        # while maintaining data structure for system integrity
+        
+        user = User.objects.get(id=user_id)
+        user.first_name = "[ERASED]"
+        user.last_name = "[ERASED]"
+        user.email = f"erased_{user_id}@deleted.local"
+        user.is_active = False
+        user.save()
+        
+        # Remove face templates
+        FaceTemplate.objects.filter(user=user).delete()
+        
+        # Keep anonymized attendance records for legal/audit purposes
+        AttendanceRecord.objects.filter(user=user).update(
+            user=None,
+            anonymized_user_hash=self.hash_identifier(str(user_id))
+        )</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>5. Production Deployment & Monitoring</h4>
+                                <p>Kubernetes deployment with comprehensive monitoring and alerting.</p>
+                                <div class="code-example">
+                                    <pre><code># kubernetes/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: face-attendance-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: face-attendance-api
+  template:
+    metadata:
+      labels:
+        app: face-attendance-api
+    spec:
+      containers:
+      - name: api
+        image: face-attendance:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready/
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>6. Performance Monitoring</h4>
+                                <p>Comprehensive monitoring with Prometheus, Grafana, and custom metrics.</p>
+                                <div class="code-example">
+                                    <pre><code># monitoring/metrics.py
+from prometheus_client import Counter, Histogram, Gauge
+import time
+
+# Define metrics
+face_recognition_requests = Counter(
+    'face_recognition_requests_total',
+    'Total face recognition requests',
+    ['camera_id', 'status']
+)
+
+recognition_duration = Histogram(
+    'face_recognition_duration_seconds',
+    'Time spent on face recognition',
+    buckets=[0.1, 0.25, 0.5, 1.0, 2.5, 5.0]
+)
+
+active_cameras = Gauge(
+    'active_cameras_total',
+    'Number of active cameras'
+)
+
+class PerformanceMonitor:
+    def track_recognition_request(self, camera_id):
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                start_time = time.time()
+                
+                try:
+                    result = func(*args, **kwargs)
+                    face_recognition_requests.labels(
+                        camera_id=camera_id, 
+                        status='success'
+                    ).inc()
+                    return result
+                    
+                except Exception as e:
+                    face_recognition_requests.labels(
+                        camera_id=camera_id, 
+                        status='error'
+                    ).inc()
+                    raise
+                    
+                finally:
+                    duration = time.time() - start_time
+                    recognition_duration.observe(duration)
+                    
+            return wrapper
+        return decorator</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>Anti-Spoofing</h5>
+                                <p>CNN liveness detection</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Enterprise Auth</h5>
+                                <p>JWT + MFA + RBAC</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Data Encryption</h5>
+                                <p>AES-256 + GDPR compliance</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Security Monitoring</h5>
+                                <p>Real-time threat detection</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Production Deployment</h5>
+                                <p>Kubernetes + monitoring</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 7: Advanced Features -->
+                <div class="phase" data-phase="7">
+                    <div class="phase-header" onclick="toggleRoadmapPhase(7)">
+                        <div class="phase-title">
+                            <h3>Phase 7: Advanced Analytics & Mobile Integration</h3>
+                            <div class="phase-meta">
+                                <span>Duration: 6-8 days</span>
+                                <span>Difficulty: Advanced</span>
+                                <span>Dependencies: Phase 6</span>
+                            </div>
+                        </div>
+                        <div class="phase-status status-pending">OPTIONAL</div>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="phase-description">
+                            <strong>Goal:</strong> Add advanced analytics, machine learning insights, mobile app, and enterprise integrations.
+                        </div>
+                        
+                        <div class="step-list">
+                            <div class="step">
+                                <h4>1. Advanced Analytics Engine</h4>
+                                <p>ML-powered attendance pattern analysis and predictive insights.</p>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>2. Mobile Application</h4>
+                                <p>React Native app for manual check-in and attendance monitoring.</p>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>3. Enterprise Integrations</h4>
+                                <p>LDAP, SAML, and HR system integrations.</p>
+                            </div>
+                            
+                            <div class="step">
+                                <h4>4. Reporting & Export</h4>
+                                <p>Advanced reporting with customizable dashboards and automated exports.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="deliverables">
+                            <div class="deliverable">
+                                <h5>ML Analytics</h5>
+                                <p>Predictive insights</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Mobile App</h5>
+                                <p>React Native application</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Enterprise Integration</h5>
+                                <p>LDAP/SAML/HR systems</p>
+                            </div>
+                            <div class="deliverable">
+                                <h5>Advanced Reports</h5>
+                                <p>Custom dashboards</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="getting-started">
+                <h3>Complete Technology Stack Summary</h3>
+                <div class="architecture-diagram">
+                    <div class="service-group">
+                        <h3><span class="icon">Backend</span>Core Backend</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">Django</span><span class="service-tech">4.2+</span></li>
+                            <li><span class="service-name">Django REST Framework</span><span class="service-tech">3.14+</span></li>
+                            <li><span class="service-name">Celery</span><span class="service-tech">5.3+</span></li>
+                            <li><span class="service-name">Gunicorn</span><span class="service-tech">21.x</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-group">
+                        <h3><span class="icon">AI</span>AI/ML Stack</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">PyTorch</span><span class="service-tech">2.0+</span></li>
+                            <li><span class="service-name">OpenCV</span><span class="service-tech">4.8+</span></li>
+                            <li><span class="service-name">DeepFace</span><span class="service-tech">0.0.79+</span></li>
+                            <li><span class="service-name">MTCNN</span><span class="service-tech">0.1.1+</span></li>
+                            <li><span class="service-name">TensorRT</span><span class="service-tech">8.6+</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-group">
+                        <h3><span class="icon">Database</span>Data Storage</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">PostgreSQL</span><span class="service-tech">15+</span></li>
+                            <li><span class="service-name">pgvector</span><span class="service-tech">0.4+</span></li>
+                            <li><span class="service-name">Redis</span><span class="service-tech">7.0+</span></li>
+                            <li><span class="service-name">MinIO</span><span class="service-tech">2023+</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-group">
+                        <h3><span class="icon">Infrastructure</span>DevOps</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">Docker</span><span class="service-tech">24+</span></li>
+                            <li><span class="service-name">Kubernetes</span><span class="service-tech">1.27+</span></li>
+                            <li><span class="service-name">Nginx</span><span class="service-tech">1.24+</span></li>
+                            <li><span class="service-name">RabbitMQ</span><span class="service-tech">3.11+</span></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>Phase-by-Phase Development Guide</h3>
+                <div class="quick-start-grid">
+                    <div class="quick-start-item">
+                        <h4>Phase 1: Basic Setup (Days 1-5)</h4>
+                        <pre><code># Project initialization
+mkdir face-attendance-system
+cd face-attendance-system
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or venv\Scripts\activate  # Windows
+
+# Install basic dependencies
+pip install Django==4.2.7 opencv-python==4.8.1.78 
+pip install mtcnn==0.1.1 Pillow==10.1.0
+
+# Create Django project
+django-admin startproject core .
+python manage.py startapp face_app
+python manage.py migrate
+python manage.py createsuperuser</code></pre>
+                    </div>
+                    
+                    <div class="quick-start-item">
+                        <h4>Phase 2: AI Integration (Days 6-12)</h4>
+                        <pre><code># Add AI dependencies
+pip install deepface==0.0.79 torch torchvision
+pip install scikit-learn numpy pandas
+
+# Test AI components
+python -c "from deepface import DeepFace; print('DeepFace ready!')"
+python -c "from mtcnn import MTCNN; print('MTCNN ready!')"
+
+# Database setup for face templates
+python manage.py makemigrations
+python manage.py migrate</code></pre>
+                    </div>
+                    
+                    <div class="quick-start-item">
+                        <h4>Phase 3: Database & APIs (Days 13-18)</h4>
+                        <pre><code># Add DRF and database dependencies
+pip install djangorestframework psycopg2-binary
+pip install django-cors-headers python-decouple
+
+# PostgreSQL setup (production)
+# Docker development database
+docker run --name postgres-face-attendance \
+  -e POSTGRES_DB=face_attendance \
+  -e POSTGRES_USER=face_user \
+  -e POSTGRES_PASSWORD=secure_password \
+  -p 5432:5432 -d postgres:15</code></pre>
+                    </div>
+                    
+                    <div class="quick-start-item">
+                        <h4>Phase 4: Real-time Features (Days 19-26)</h4>
+                        <pre><code># Add real-time dependencies
+pip install channels redis websockets
+pip install opencv-contrib-python aiortc
+
+# Redis for caching and WebSocket
+docker run --name redis-face-attendance \
+  -p 6379:6379 -d redis:7-alpine
+
+# Start development server with channels
+python manage.py runserver</code></pre>
+                    </div>
+                    
+                    <div class="quick-start-item">
+                        <h4>Phase 5: Performance (Days 27-36)</h4>
+                        <pre><code># Add performance dependencies
+pip install psycopg2-binary pgvector celery
+pip install prometheus_client tensorrt
+
+# Setup pgvector
+# In PostgreSQL: CREATE EXTENSION vector;
+
+# Start Celery worker
+celery -A core worker -l info</code></pre>
+                    </div>
+                    
+                    <div class="quick-start-item">
+                        <h4>Phase 6: Production (Days 37-48)</h4>
+                        <pre><code># Production dependencies
+pip install gunicorn whitenoise cryptography
+pip install sentry-sdk django-security
+
+# Build Docker image
+docker build -t face-attendance:latest .
+
+# Deploy to Kubernetes
+kubectl apply -f kubernetes/</code></pre>
+                    </div>
+                </div>
+                
+                <h3>Quick Development Commands</h3>
+                <div class="code-example">
+                    <pre><code># Development workflow
+git clone https://github.com/your-org/face-attendance-system.git
+cd face-attendance-system
+
+# Environment setup
+cp .env.example .env
+docker-compose up -d  # Start databases
+python manage.py migrate
+python manage.py createsuperuser
+
+# Start development
+python manage.py runserver  # API server
+celery -A core worker -l info  # Background tasks
+python manage.py collectstatic  # Static files
+
+# Testing
+python manage.py test
+pytest tests/ --cov=face_app
+
+# Production deployment
+docker-compose -f docker-compose.prod.yml up -d
+kubectl apply -f k8s/</code></pre>
+                </div>
+                
+                <h3>Architecture Decision Records</h3>
+                <div class="architecture-diagram">
+                    <div class="service-group">
+                        <h3><span class="icon">Decision</span>Why PostgreSQL + pgvector?</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">Vector Similarity</span><span class="service-tech">Native</span></li>
+                            <li><span class="service-name">ACID Compliance</span><span class="service-tech">Full</span></li>
+                            <li><span class="service-name">Horizontal Scaling</span><span class="service-tech">Yes</span></li>
+                            <li><span class="service-name">Performance</span><span class="service-tech">Excellent</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-group">
+                        <h3><span class="icon">Decision</span>Why ArcFace over FaceNet?</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">Accuracy</span><span class="service-tech">99.8%</span></li>
+                            <li><span class="service-name">Speed</span><span class="service-tech">5ms</span></li>
+                            <li><span class="service-name">Robustness</span><span class="service-tech">High</span></li>
+                            <li><span class="service-name">Memory</span><span class="service-tech">Efficient</span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="service-group">
+                        <h3><span class="icon">Decision</span>Why RabbitMQ over Kafka?</h3>
+                        <ul class="service-list">
+                            <li><span class="service-name">Setup Complexity</span><span class="service-tech">Low</span></li>
+                            <li><span class="service-name">Message Patterns</span><span class="service-tech">Flexible</span></li>
+                            <li><span class="service-name">Resource Usage</span><span class="service-tech">Moderate</span></li>
+                            <li><span class="service-name">Django Integration</span><span class="service-tech">Excellent</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all nav tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        function toggleRoadmapPhase(phaseNum) {
+            const phase = document.querySelector(`[data-phase="${phaseNum}"]`);
+            phase.classList.toggle('expanded');
+            
+            // Update progress bar
+            updateRoadmapProgress();
+        }
+
+        function updateRoadmapProgress() {
+            const phases = document.querySelectorAll('.phase');
+            const completedPhases = document.querySelectorAll('.phase.completed').length;
+            const totalPhases = phases.length;
+            const progressPercentage = (completedPhases / totalPhases) * 100;
+            
+            const progressBar = document.getElementById('roadmapProgress');
+            if (progressBar) {
+                progressBar.style.width = `${progressPercentage}%`;
+            }
+        }
+
+        function markPhaseComplete(phaseNum) {
+            const phase = document.querySelector(`[data-phase="${phaseNum}"]`);
+            phase.classList.add('completed');
+            
+            const statusElement = phase.querySelector('.phase-status');
+            statusElement.textContent = 'COMPLETED';
+            statusElement.className = 'phase-status status-completed';
+            
+            updateRoadmapProgress();
+        }
+
+        function estimateTimeToCompletion() {
+            const phases = [
+                { phase: 1, days: 5, difficulty: 'Basic' },
+                { phase: 2, days: 7, difficulty: 'Intermediate' },
+                { phase: 3, days: 6, difficulty: 'Intermediate' },
+                { phase: 4, days: 8, difficulty: 'Advanced' },
+                { phase: 5, days: 10, difficulty: 'Expert' },
+                { phase: 6, days: 12, difficulty: 'Expert' },
+                { phase: 7, days: 8, difficulty: 'Advanced' }
+            ];
+            
+            const totalDays = phases.reduce((sum, phase) => sum + phase.days, 0);
+            const totalWeeks = Math.ceil(totalDays / 5);
+            
+            return { totalDays, totalWeeks, phases };
+        }
+
+        // Add smooth scrolling for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click animations
+            const cards = document.querySelectorAll('.service-group, .metric-card, .security-card, .deployment-option');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // Add loading animation
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                container.style.transition = 'all 0.6s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Expand first phase by default
+            const firstPhase = document.querySelector('[data-phase="1"]');
+            if (firstPhase) {
+                firstPhase.classList.add('expanded');
+            }
+        });
+    </script>
+</body>
+</html>
