@@ -1,10 +1,10 @@
 version: '3.8'
 
-# 🏢 Face Attendance System - Complete Docker Compose Configuration
-# This file defines the entire microservices architecture for production deployment
+# Face Attendance System - Docker Compose Configuration
+# Production-ready microservices architecture
 
 services:
-  # 🌐 Load Balancer & Reverse Proxy
+  # Load Balancer & Reverse Proxy
   nginx:
     image: nginx:1.25-alpine
     container_name: face_attendance_nginx
@@ -22,28 +22,30 @@ services:
     networks:
       - face_attendance_network
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nginx.rule=Host(`yourdomain.com`)"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # 🚀 Django Backend API
+  # Django Backend API
   web:
     build:
-      context: ./backend
+      context: ./core
       dockerfile: Dockerfile
     container_name: face_attendance_backend
     ports:
       - "8000:8000"
     environment:
       - DEBUG=False
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
+      - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - REDIS_URL=redis://redis:6379/0
-      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672//
+      - RABBITMQ_URL=amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672//
       - SECRET_KEY=${DJANGO_SECRET_KEY}
-      - ALLOWED_HOSTS=localhost,127.0.0.1,yourdomain.com
-      - CORS_ALLOWED_ORIGINS=https://yourdomain.com
+      - ALLOWED_HOSTS=localhost,127.0.0.1,${DOMAIN_NAME}
+      - CORS_ALLOWED_ORIGINS=https://${DOMAIN_NAME}
     volumes:
-      - ./backend:/app
+      - ./core:/app
       - static_volume:/app/static
       - media_volume:/app/media
       - ./logs/backend:/app/logs
@@ -60,97 +62,38 @@ services:
       timeout: 10s
       retries: 3
 
-  # 🧠 AI Face Processing Workers
-  ai_worker_1:
+  # AI Face Processing Workers
+  ai_worker:
     build:
-      context: ./ai-services/face-processor
-      dockerfile: Dockerfile.gpu
-    container_name: face_worker_1
+      context: ./ai_workers
+      dockerfile: Dockerfile
+    container_name: face_worker
     environment:
       - WORKER_ID=worker_1
-      - GPU_DEVICE=0
-      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672//
+      - RABBITMQ_URL=amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672//
       - REDIS_URL=redis://redis:6379/1
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
+      - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - MODEL_PATH=/app/models
     volumes:
-      - ./ai-services/face-processor:/app
+      - ./ai_workers:/app
       - ./models:/app/models
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./logs/ai_workers:/app/logs
     depends_on:
       - postgres
       - redis
       - rabbitmq
     networks:
       - face_attendance_network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     restart: unless-stopped
 
-  ai_worker_2:
-    build:
-      context: ./ai-services/face-processor
-      dockerfile: Dockerfile.gpu
-    container_name: face_worker_2
-    environment:
-      - WORKER_ID=worker_2
-      - GPU_DEVICE=1
-      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672//
-      - REDIS_URL=redis://redis:6379/1
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
-      - MODEL_PATH=/app/models
-    volumes:
-      - ./ai-services/face-processor:/app
-      - ./models:/app/models
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-    networks:
-      - face_attendance_network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    restart: unless-stopped
-
-  # 📊 Analytics Engine
-  analytics_engine:
-    build:
-      context: ./ai-services/analytics-engine
-      dockerfile: Dockerfile
-    container_name: analytics_engine
-    environment:
-      - REDIS_URL=redis://redis:6379/2
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
-      - INFLUXDB_URL=http://influxdb:8086
-    volumes:
-      - ./ai-services/analytics-engine:/app
-      - ./logs/analytics:/app/logs
-    depends_on:
-      - postgres
-      - redis
-      - influxdb
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 💾 PostgreSQL Database with pgvector
+  # PostgreSQL Database with pgvector
   postgres:
     image: pgvector/pgvector:pg15
     container_name: face_attendance_postgres
     environment:
       - POSTGRES_DB=face_attendance
       - POSTGRES_USER=face_user
-      - POSTGRES_PASSWORD=secure_password
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -167,30 +110,11 @@ services:
       timeout: 10s
       retries: 5
 
-  # 📚 PostgreSQL Read Replica (for scaling)
-  postgres_replica:
-    image: pgvector/pgvector:pg15
-    container_name: face_attendance_postgres_replica
-    environment:
-      - POSTGRES_DB=face_attendance
-      - POSTGRES_USER=face_user
-      - POSTGRES_PASSWORD=secure_password
-      - POSTGRES_MASTER_SERVICE=postgres
-      - POSTGRES_REPLICA_USER=replica_user
-      - POSTGRES_REPLICA_PASSWORD=replica_password
-    volumes:
-      - postgres_replica_data:/var/lib/postgresql/data
-    depends_on:
-      - postgres
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 🚀 Redis Cache & Session Store
+  # Redis Cache & Session Store
   redis:
     image: redis:7.2-alpine
     container_name: face_attendance_redis
-    command: redis-server --appendonly yes --requirepass redis_password
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     volumes:
@@ -200,22 +124,22 @@ services:
       - face_attendance_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # 🐰 RabbitMQ Message Queue
+  # RabbitMQ Message Queue
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
     container_name: face_attendance_rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
       - RABBITMQ_DEFAULT_VHOST=/
     ports:
       - "5672:5672"
-      - "15672:15672"  # Management UI
+      - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./config/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
@@ -228,36 +152,15 @@ services:
       timeout: 10s
       retries: 3
 
-  # 📹 Camera Streaming Service
-  camera_streamer:
-    build:
-      context: ./camera-services/rtsp-streamer
-      dockerfile: Dockerfile
-    container_name: camera_streamer
-    environment:
-      - REDIS_URL=redis://redis:6379/3
-      - CAMERA_CONFIG_PATH=/app/config/cameras.json
-    volumes:
-      - ./camera-services/rtsp-streamer:/app
-      - ./config/cameras:/app/config
-      - /dev:/dev  # For USB camera access
-    ports:
-      - "8554:8554"  # RTSP
-      - "8080:8080"  # HTTP streaming
-    networks:
-      - face_attendance_network
-    privileged: true  # For camera access
-    restart: unless-stopped
-
-  # 🌐 Frontend Admin Dashboard
+  # Frontend Admin Dashboard
   admin_dashboard:
     build:
       context: ./frontend/admin-dashboard
       dockerfile: Dockerfile
     container_name: admin_dashboard
     environment:
-      - REACT_APP_API_URL=https://yourdomain.com/api/v1
-      - REACT_APP_WS_URL=wss://yourdomain.com/ws
+      - REACT_APP_API_URL=https://${DOMAIN_NAME}/api/v1
+      - REACT_APP_WS_URL=wss://${DOMAIN_NAME}/ws
     ports:
       - "3000:3000"
     volumes:
@@ -267,25 +170,7 @@ services:
       - face_attendance_network
     restart: unless-stopped
 
-  # 📱 Enrollment Application
-  enrollment_app:
-    build:
-      context: ./frontend/enrollment-app
-      dockerfile: Dockerfile
-    container_name: enrollment_app
-    environment:
-      - REACT_APP_API_URL=https://yourdomain.com/api/v1
-      - REACT_APP_CAMERA_SERVICE=https://yourdomain.com/camera
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./frontend/enrollment-app:/app
-      - /app/node_modules
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 📊 Prometheus Monitoring
+  # Prometheus Monitoring
   prometheus:
     image: prom/prometheus:v2.45.0
     container_name: prometheus
@@ -305,13 +190,13 @@ services:
       - face_attendance_network
     restart: unless-stopped
 
-  # 📈 Grafana Dashboards
+  # Grafana Dashboards
   grafana:
     image: grafana/grafana:10.0.0
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=grafana_password
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
       - "3002:3000"
@@ -323,94 +208,14 @@ services:
       - face_attendance_network
     restart: unless-stopped
 
-  # 📊 InfluxDB Time Series Database
-  influxdb:
-    image: influxdb:2.7-alpine
-    container_name: influxdb
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=influx_password
-      - DOCKER_INFLUXDB_INIT_ORG=face_attendance
-      - DOCKER_INFLUXDB_INIT_BUCKET=metrics
-    ports:
-      - "8086:8086"
-    volumes:
-      - influxdb_data:/var/lib/influxdb2
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 🔍 Elasticsearch for Logging
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 📊 Kibana for Log Visualization
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.8.0
-    container_name: kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 📦 Logstash for Log Processing
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.8.0
-    container_name: logstash
-    volumes:
-      - ./monitoring/elk-stack/logstash/pipeline:/usr/share/logstash/pipeline
-      - ./logs:/logs
-    depends_on:
-      - elasticsearch
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 🔍 Jaeger for Distributed Tracing
-  jaeger:
-    image: jaegertracing/all-in-one:1.47
-    container_name: jaeger
-    environment:
-      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
-    ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "14250:14250"
-      - "9411:9411"
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-  # 📦 MinIO Object Storage
+  # MinIO Object Storage
   minio:
     image: minio/minio:latest
     container_name: minio
     command: server /data --console-address ":9001"
     environment:
       - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minio_password
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -420,19 +225,19 @@ services:
       - face_attendance_network
     restart: unless-stopped
 
-  # 📱 Celery Worker for Background Tasks
+  # Celery Worker for Background Tasks
   celery_worker:
     build:
-      context: ./backend
+      context: ./core
       dockerfile: Dockerfile
     container_name: celery_worker
     command: celery -A core worker -l info --concurrency=4
     environment:
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
+      - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - REDIS_URL=redis://redis:6379/0
-      - RABBITMQ_URL=amqp://admin:password@rabbitmq:5672//
+      - RABBITMQ_URL=amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672//
     volumes:
-      - ./backend:/app
+      - ./core:/app
       - ./logs/celery:/app/logs
     depends_on:
       - postgres
@@ -442,18 +247,18 @@ services:
       - face_attendance_network
     restart: unless-stopped
 
-  # ⏰ Celery Beat Scheduler
+  # Celery Beat Scheduler
   celery_beat:
     build:
-      context: ./backend
+      context: ./core
       dockerfile: Dockerfile
     container_name: celery_beat
     command: celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     environment:
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
+      - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - REDIS_URL=redis://redis:6379/0
     volumes:
-      - ./backend:/app
+      - ./core:/app
       - ./logs/celery:/app/logs
     depends_on:
       - postgres
@@ -462,72 +267,6 @@ services:
       - face_attendance_network
     restart: unless-stopped
 
-  # 🌐 Traefik Load Balancer (Alternative to Nginx)
-  traefik:
-    image: traefik:v3.0
-    container_name: traefik
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"  # Traefik dashboard
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/traefik:/etc/traefik
-    networks:
-      - face_attendance_network
-    profiles:
-      - traefik  # Only start with --profile traefik
-    restart: unless-stopped
-
-  # 🧪 Testing & Development Tools
-  selenium_hub:
-    image: selenium/hub:4.11.0
-    container_name: selenium_hub
-    ports:
-      - "4444:4444"
-    networks:
-      - face_attendance_network
-    profiles:
-      - testing
-
-  selenium_chrome:
-    image: selenium/node-chrome:4.11.0
-    container_name: selenium_chrome
-    environment:
-      - HUB_HOST=selenium_hub
-    depends_on:
-      - selenium_hub
-    networks:
-      - face_attendance_network
-    profiles:
-      - testing
-
-  # 🔄 Backup Service
-  backup_service:
-    build:
-      context: ./scripts/backup
-      dockerfile: Dockerfile
-    container_name: backup_service
-    environment:
-      - DATABASE_URL=postgresql://face_user:secure_password@postgres:5432/face_attendance
-      - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
-      - S3_BUCKET=face-attendance-backups
-    volumes:
-      - ./database/backups:/backups
-      - backup_data:/backup_data
-    depends_on:
-      - postgres
-    networks:
-      - face_attendance_network
-    restart: unless-stopped
-
-# 🌐 Networks
 networks:
   face_attendance_network:
     driver: bridge
@@ -535,34 +274,12 @@ networks:
       config:
         - subnet: 172.20.0.0/16
 
-# 💾 Persistent Volumes
 volumes:
   postgres_data:
-  postgres_replica_data:
   redis_data:
   rabbitmq_data:
   prometheus_data:
   grafana_data:
-  influxdb_data:
-  elasticsearch_data:
   minio_data:
   static_volume:
   media_volume:
-  backup_data:
-
-# 🏷️ Labels for Container Management
-x-logging: &default-logging
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
-
-# 🔧 Extension Fields for Common Configurations
-x-restart-policy: &restart-policy
-  restart: unless-stopped
-
-x-healthcheck: &default-healthcheck
-  interval: 30s
-  timeout: 10s
-  retries: 3
-  start_period: 40s
