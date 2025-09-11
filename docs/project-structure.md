@@ -33,24 +33,20 @@ true-presence/
 │   │   ├── urls.py
 │   │   ├── wsgi.py
 │   │   └── asgi.py
-│   ├── apps/
-│   │   ├── authentication/             # JWT Auth System
-│   │   ├── users/                      # User Management
-│   │   ├── attendance/                 # Attendance Logic
-│   │   ├── face_recognition/           # Face Processing APIs
-│   │   ├── cameras/                    # Camera Management
-│   │   ├── reports/                    # Analytics & Reports
-│   │   ├── notifications/              # Alert System
-│   │   └── admin_dashboard/            # Admin Interface
+│   ├── authentication/             # JWT Auth System
+│   ├── users/                      # User Management
+│   ├── attendance/                 # Attendance Logic
+│   ├── face_recognition/           # Face Processing APIs
+│   ├── cameras/                    # Camera Management
+│   ├── reports/                    # Analytics & Reports
+│   ├── notifications/              # Alert System
+│   ├── admin_dashboard/            # Admin Interface
 │   ├── shared/
-│   │   ├── utils/
-│   │   ├── exceptions/
-│   │   ├── middlewares/
-│   │   └── permissions/
-│   └── requirements/
-│       ├── base.txt
-│       ├── development.txt
-│       └── production.txt
+│       ├── utils/
+│       ├── exceptions/
+│       ├── middlewares/
+│       └── permissions/
+│   
 │
 ├── ai-services/
 │   ├── face-processor/                 # Main AI Worker
