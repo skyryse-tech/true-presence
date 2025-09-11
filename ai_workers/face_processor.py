@@ -17,7 +17,6 @@ from concurrent.futures import ThreadPoolExecutor
 from .config import FaceDetectionConfig
 from .detection_service import FaceDetectionService, DetectedFace
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -37,7 +36,6 @@ class FaceProcessor:
         self.config = config or FaceDetectionConfig.from_env()
         self.detection_service = FaceDetectionService(self.config)
         
-        # Thread pool for async processing
         self.executor = ThreadPoolExecutor(max_workers=self.config.max_workers)
         
         logger.info(f"FaceProcessor initialized with {self.config.detector_backend.value} detector")
@@ -54,25 +52,19 @@ class FaceProcessor:
             Preprocessed image as numpy array or None if failed
         """
         try:
-            # Convert bytes to PIL Image
             image = Image.open(BytesIO(image_data))
             
-            # Convert to RGB if needed
             if image.mode != 'RGB':
                 image = image.convert('RGB')
             
-            # Convert to numpy array (PIL uses RGB, OpenCV uses BGR)
             image_array = np.array(image)
             
-            # Convert RGB to BGR for OpenCV compatibility
             image_array = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
             
-            # Validate image
             if image_array.size == 0:
                 logger.warning("Empty image provided")
                 return None
             
-            # Validate image dimensions
             height, width = image_array.shape[:2]
             if height < self.config.min_face_size or width < self.config.min_face_size:
                 logger.warning(f"Image too small: {width}x{height}")
@@ -96,7 +88,6 @@ class FaceProcessor:
             Processing results with detected faces, quality metrics, and embeddings
         """
         try:
-            # Step 1: Preprocess image
             image = self.preprocess_image(image_data)
             if image is None:
                 return {
@@ -105,7 +96,6 @@ class FaceProcessor:
                     "faces": []
                 }
             
-            # Step 2: Detect faces using the detection service
             detected_faces = self.detection_service.detect_faces(image)
             
             if not detected_faces:
@@ -116,7 +106,6 @@ class FaceProcessor:
                     "total_faces": 0
                 }
             
-            # Step 3: Process each detected face
             processed_faces = []
             for i, face in enumerate(detected_faces):
                 try:
@@ -160,12 +149,10 @@ class FaceProcessor:
             Processed face data or None if processing failed
         """
         try:
-            # Extract embedding if needed
             embedding = None
             if self.config.extract_embeddings:
                 embedding = self.detection_service.get_embedding(detected_face.cropped_face)
             
-            # Convert face crop to base64 for API response (optional)
             face_base64 = None
             if self.config.return_face_crops:
                 _, buffer = cv2.imencode('.jpg', detected_face.cropped_face)
@@ -194,7 +181,6 @@ class FaceProcessor:
                 "face_crop_base64": face_base64
             }
             
-            # Add landmarks if available
             if detected_face.landmarks:
                 processed_face["landmarks"] = {
                     "left_eye": detected_face.landmarks.left_eye,
@@ -263,7 +249,6 @@ class FaceProcessor:
                     f"Low detection confidence: {face_data.get('confidence', 0.0):.2f}"
                 )
             
-            # Check quality if enabled
             if self.config.enable_quality_check:
                 quality = face_data.get("quality", {})
                 if not quality.get("is_good_quality", False):
@@ -272,13 +257,11 @@ class FaceProcessor:
                         f"Poor image quality: score {quality.get('quality_score', 0.0):.2f}"
                     )
             
-            # Check liveness if enabled
             if self.config.enable_anti_spoofing:
                 if not face_data.get("is_live", True):
                     validation_result["is_valid"] = False
                     validation_result["reasons"].append("Failed liveness detection")
             
-            # Check if embedding was extracted
             if self.config.extract_embeddings and not face_data.get("embedding"):
                 validation_result["is_valid"] = False
                 validation_result["reasons"].append("Failed to extract face embedding")
@@ -335,8 +318,6 @@ class FaceProcessor:
             Updated configuration status
         """
         try:
-            # Update configuration (basic implementation)
-            # In a production system, you'd want more sophisticated config management
             updated_fields = []
             
             if "min_detection_confidence" in new_config:

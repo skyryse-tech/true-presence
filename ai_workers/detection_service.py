@@ -13,7 +13,6 @@ from abc import ABC, abstractmethod
 from deepface import DeepFace
 from .config import FaceDetectionConfig, DetectorBackend, RecognitionModel
 
-# Setup logging
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -111,12 +110,10 @@ class RetinaFaceDetector(FaceDetector):
             return []
         
         try:
-            # RetinaFace expects image path or PIL image, so we need to save temporarily
             temp_path = "/tmp/temp_face_detection.jpg"
             cv2.imwrite(temp_path, image)
             results = self.detector.detect_faces(temp_path)
             
-            # Convert RetinaFace format to standard format
             faces = []
             for face_key, face_data in results.items():
                 if isinstance(face_data, dict):
@@ -147,7 +144,6 @@ class DeepFaceDetector(FaceDetector):
     
     def detect_faces(self, image: np.ndarray) -> List[Dict[str, Any]]:
         try:
-            # Use DeepFace's extract_faces function
             faces = DeepFace.extract_faces(
                 img_path=image,
                 detector_backend=self.backend,
@@ -156,11 +152,9 @@ class DeepFaceDetector(FaceDetector):
                 target_size=(224, 224)
             )
             
-            # Convert to standard format
             results = []
             for i, face in enumerate(faces):
                 if face is not None:
-                    # Estimate bounding box (DeepFace extract_faces doesn't return bbox)
                     h, w = image.shape[:2]
                     face_size = min(h, w) // 2
                     x = (w - face_size) // 2
@@ -168,7 +162,7 @@ class DeepFaceDetector(FaceDetector):
                     
                     results.append({
                         'box': [x, y, face_size, face_size],
-                        'confidence': 0.9,  # Default confidence
+                        'confidence': 0.9,
                         'keypoints': {}
                     })
             
