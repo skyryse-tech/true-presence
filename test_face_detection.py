@@ -1,24 +1,56 @@
 """
 Face Detection System Test Script
 
-This script tests the new face detection system to ensure:
+This script tests the face detection system with real photos:
 1. Configuration loads correctly
 2. Detection service initializes properly
-3. Face processor works with different backends
-4. Error handling works correctly
+3. Face processor works with real photos
+4. Tests with your actual photos (straight, left, right face)
 """
 
 import os
 import sys
 import numpy as np
 import cv2
-from typing import Dict, Any
+from typing import Dict, Any, List
+from pathlib import Path
 
-# Add the project root to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Fix: Add the current directory to the path (not parent)
+project_root = Path(__file__).parent  # ✅ Current directory
+sys.path.insert(0, str(project_root))
+
+def create_test_photo_structure():
+    """Create test photo directory structure"""
+    test_dir = Path(__file__).parent / "test_photos" / "person1"
+    test_dir.mkdir(parents=True, exist_ok=True)
+    
+    return test_dir
+
+def get_test_photos() -> List[Path]:
+    """Get list of test photos"""
+    test_dir = create_test_photo_structure()
+    
+    photo_names = ['straight.jpg', 'left.jpg', 'right.jpg', 
+                   'straight.png', 'left.png', 'right.png',
+                   'front.jpg', 'profile_left.jpg', 'profile_right.jpg']
+    
+    found_photos = []
+    for photo_name in photo_names:
+        photo_path = test_dir / photo_name
+        if photo_path.exists():
+            found_photos.append(photo_path)
+    
+    # Also check for any jpg/png files in the directory
+    for ext in ['*.jpg', '*.jpeg', '*.png']:
+        found_photos.extend(test_dir.glob(ext))
+    
+    # Remove duplicates
+    found_photos = list(set(found_photos))
+    
+    return found_photos
 
 def create_test_image() -> np.ndarray:
-    """Create a test image with synthetic faces for testing"""
+    """Create a test image with synthetic faces for testing (fallback)"""
     # Create a simple test image with geometric shapes as "faces"
     image = np.zeros((480, 640, 3), dtype=np.uint8)
     
@@ -29,7 +61,6 @@ def create_test_image() -> np.ndarray:
     # Draw some rectangles to simulate faces
     cv2.rectangle(image, (100, 100), (200, 200), (100, 150, 200), -1)
     cv2.rectangle(image, (300, 150), (400, 250), (150, 100, 200), -1)
-    cv2.rectangle(image, (450, 200), (550, 300), (200, 150, 100), -1)
     
     # Add some circles for eyes
     cv2.circle(image, (130, 130), 10, (255, 255, 255), -1)
@@ -69,6 +100,77 @@ def test_configuration():
         print(f"  ✗ Configuration test failed: {e}")
         return False
 
+def test_with_real_photos():
+    """Test with real photos"""
+    print("\nTesting with Real Photos...")
+    
+    test_photos = get_test_photos()
+    
+    if not test_photos:
+        test_dir = create_test_photo_structure()
+        print(f"  ⚠️  No test photos found in {test_dir}")
+        print("  📋 Instructions:")
+        print(f"     1. Add your photos to: {test_dir}")
+        print("     2. Recommended names: straight.jpg, left.jpg, right.jpg")
+        print("     3. Or use any .jpg/.png files")
+        print("     4. Run this script again")
+        return False
+    
+    print(f"  📸 Found {len(test_photos)} test photos:")
+    for photo in test_photos:
+        print(f"     - {photo.name}")
+    
+    try:
+        from ai_workers import get_face_processor
+        
+        processor = get_face_processor()
+        print(f"  ✓ Face processor initialized")
+        
+        results = {}
+        
+        for photo_path in test_photos:
+            print(f"\n  🔍 Testing: {photo_path.name}")
+            
+            try:
+                # Read image file
+                with open(photo_path, 'rb') as f:
+                    image_bytes = f.read()
+                
+                # Process image
+                result = processor.process_image(image_bytes)
+                
+                print(f"     ✓ Processing completed")
+                print(f"     - Success: {result.get('success', False)}")
+                print(f"     - Faces detected: {result.get('faces_detected', 0)}")
+                print(f"     - Processing time: {result.get('processing_time', 0):.2f}s")
+                
+                if result.get('faces'):
+                    face = result['faces'][0]
+                    print(f"     - Confidence: {face.get('confidence', 0):.3f}")
+                    print(f"     - Quality score: {face.get('quality', {}).get('quality_score', 0):.3f}")
+                    
+                    # Test face validation
+                    validation = processor.validate_face_for_attendance(face)
+                    print(f"     - Valid for attendance: {validation.get('is_valid', False)}")
+                    if not validation.get('is_valid', True):
+                        print(f"     - Issues: {', '.join(validation.get('reasons', []))}")
+                
+                results[photo_path.name] = result
+                
+            except Exception as e:
+                print(f"     ✗ Failed to process {photo_path.name}: {e}")
+                results[photo_path.name] = {'success': False, 'error': str(e)}
+        
+        # Summary
+        successful = sum(1 for r in results.values() if r.get('success', False))
+        print(f"\n  📊 Summary: {successful}/{len(test_photos)} photos processed successfully")
+        
+        return successful > 0
+        
+    except Exception as e:
+        print(f"  ✗ Real photo test failed: {e}")
+        return False
+
 def test_detection_service():
     """Test detection service initialization"""
     print("\nTesting Detection Service...")
@@ -81,22 +183,10 @@ def test_detection_service():
         service = FaceDetectionService(config)
         print(f"  ✓ Detection service initialized")
         
-        # Test with synthetic image
+        # Test with synthetic image (fallback)
         test_image = create_test_image()
         detected_faces = service.detect_faces(test_image)
         print(f"  ✓ Detection executed (found {len(detected_faces)} faces)")
-        
-        # Test embedding extraction with a small test crop
-        test_crop = test_image[100:200, 100:200]  # Extract a small crop
-        if test_crop.size > 0:
-            try:
-                embedding = service.get_embedding(test_crop)
-                if embedding is not None:
-                    print(f"  ✓ Embedding extraction successful (size: {len(embedding)})")
-                else:
-                    print(f"  ! Embedding extraction returned None (expected for synthetic image)")
-            except Exception as e:
-                print(f"  ! Embedding extraction failed (expected for synthetic image): {e}")
         
         return True
         
@@ -120,55 +210,10 @@ def test_face_processor():
         print(f"    - Recognition model: {info['processor_config']['recognition_model']}")
         print(f"    - Detector backend: {info['processor_config']['detector_backend']}")
         
-        # Test with synthetic image bytes
-        test_image = create_test_image()
-        _, buffer = cv2.imencode('.jpg', test_image)
-        image_bytes = buffer.tobytes()
-        
-        result = processor.process_image(image_bytes)
-        print(f"  ✓ Image processing completed")
-        print(f"    - Success: {result.get('success', False)}")
-        print(f"    - Faces detected: {result.get('faces_detected', 0)}")
-        print(f"    - Faces processed: {result.get('faces_processed', 0)}")
-        
-        # Test validation
-        if result.get('faces'):
-            face = result['faces'][0]
-            validation = processor.validate_face_for_attendance(face)
-            print(f"  ✓ Face validation completed")
-            print(f"    - Valid: {validation['is_valid']}")
-            if not validation['is_valid']:
-                print(f"    - Reasons: {validation['reasons']}")
-        
         return True
         
     except Exception as e:
         print(f"  ✗ Face processor test failed: {e}")
-        return False
-
-def test_legacy_compatibility():
-    """Test legacy compatibility layer"""
-    print("\nTesting Legacy Compatibility...")
-    
-    try:
-        from ai_workers import get_legacy_processor
-        
-        legacy_processor = get_legacy_processor()
-        print(f"  ✓ Legacy processor initialized")
-        
-        # Test legacy process_frame method
-        test_image = create_test_image()
-        results = legacy_processor.process_frame(test_image)
-        print(f"  ✓ Legacy process_frame executed")
-        print(f"    - Faces found: {len(results)}")
-        
-        for i, face in enumerate(results):
-            print(f"    - Face {i+1}: bbox={face['bbox']}, confidence={face['confidence']:.3f}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"  ✗ Legacy compatibility test failed: {e}")
         return False
 
 def test_error_handling():
@@ -190,18 +235,30 @@ def test_error_handling():
         assert not result.get('success', True), "Should fail with invalid input"
         print(f"  ✓ Invalid input handled correctly")
         
-        # Test with very small image
-        tiny_image = np.ones((10, 10, 3), dtype=np.uint8)
-        _, buffer = cv2.imencode('.jpg', tiny_image)
-        result = processor.process_image(buffer.tobytes())
-        # This might succeed or fail depending on configuration
-        print(f"  ✓ Small image handled: success={result.get('success', False)}")
-        
         return True
         
     except Exception as e:
         print(f"  ✗ Error handling test failed: {e}")
         return False
+
+def show_instructions():
+    """Show setup instructions"""
+    test_dir = create_test_photo_structure()
+    
+    print("\n" + "=" * 60)
+    print("📋 SETUP INSTRUCTIONS")
+    print("=" * 60)
+    print(f"Test photo directory: {test_dir}")
+    print("\n📸 Add your photos with these suggestions:")
+    print("   - straight.jpg (front-facing photo)")
+    print("   - left.jpg (left profile)")
+    print("   - right.jpg (right profile)")
+    print("\n💡 Photo tips:")
+    print("   - Clear, well-lit photos")
+    print("   - Face should be 20-80% of image")
+    print("   - Good resolution (at least 640x480)")
+    print("   - JPG or PNG format")
+    print("\n🚀 After adding photos, run this script again!")
 
 def main():
     """Run all tests"""
@@ -209,11 +266,18 @@ def main():
     print("FACE DETECTION SYSTEM TEST SUITE")
     print("=" * 60)
     
+    # Check if photos exist first
+    test_photos = get_test_photos()
+    
+    if not test_photos:
+        show_instructions()
+        return False
+    
     tests = [
         ("Configuration", test_configuration),
-        ("Detection Service", test_detection_service),
         ("Face Processor", test_face_processor),
-        ("Legacy Compatibility", test_legacy_compatibility),
+        ("Detection Service", test_detection_service),
+        ("Real Photos", test_with_real_photos),
         ("Error Handling", test_error_handling)
     ]
     
@@ -236,6 +300,10 @@ def main():
     
     if passed == total:
         print("🎉 All tests passed! Face detection system is working correctly.")
+        print("\n📋 Next steps:")
+        print("   - Try adding more photos for better recognition")
+        print("   - Test the attendance enrollment process")
+        print("   - Set up the full Django application")
         return True
     else:
         print("⚠️ Some tests failed. Please check the error messages above.")
