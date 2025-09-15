@@ -14,8 +14,8 @@ import { login, clearError } from '../../store/slices/authSlice';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: 'admin@ljku.edu.in',
+    password: 'password123',
   });
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);

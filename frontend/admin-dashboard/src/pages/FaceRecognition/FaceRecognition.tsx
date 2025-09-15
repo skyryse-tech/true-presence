@@ -23,7 +23,7 @@ import {
   CameraAlt as CameraIcon,
   PhotoCamera as PhotoIcon,
   VideoLibrary as VideoIcon,
-  Webcam as WebcamIcon,
+  Videocam as WebcamIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import Webcam from 'react-webcam';
