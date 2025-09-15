@@ -29,6 +29,7 @@ kombu==5.4.0
 
 # Authentication & Security
 PyJWT==2.9.0
+djangorestframework-simplejwt==5.3.0
 django-allauth==0.62.0
 cryptography==43.0.1
 argon2-cffi==23.1.0
@@ -55,11 +56,9 @@ Pillow==10.4.0
 scikit-image==0.24.0
 imageio==2.36.0
 
-# Face Detection & Recognition
+# Face Detection & Recognition (simplified for initial setup)
 mtcnn==0.1.1
 deepface==0.0.79
-insightface==0.7.3
-retinaface
 facenet-pytorch==2.5.3
 
 # Scientific Computing
@@ -72,6 +71,7 @@ seaborn==0.13.2
 
 # Model Optimization
 onnx==1.16.1
+onnxruntime==1.15.1
 onnxruntime-gpu==1.18.1
 tensorrt==8.6.1
 openvino==2024.3.0
@@ -85,6 +85,11 @@ gunicorn==23.0.0
 uvicorn==0.32.1
 whitenoise==6.8.2
 daphne==4.0.0
+
+# FastAPI for AI Services
+fastapi==0.101.1
+pydantic==2.1.1
+aiofiles==23.1.0
 
 # HTTP & Networking
 requests==2.32.3
@@ -137,6 +142,7 @@ psutil==6.1.0
 structlog==24.4.0
 colorlog==6.9.0
 sentry-sdk==2.19.0
+loguru==0.7.0
 
 # Health Checks
 django-health-check==3.18.0
@@ -216,7 +222,6 @@ objgraph==3.6.0
 
 # Encryption
 pycryptodome==3.21.0
-cryptography==43.0.1
 
 # GDPR & Privacy
 django-anonymizer==0.5
