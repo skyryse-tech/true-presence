@@ -13,7 +13,6 @@ RUN apt-get update \
         libpq-dev \
         curl \
         git \
-        nvidia-cuda-toolkit \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/

@@ -194,9 +194,9 @@ python-socketio
 # Edge Computing & Hardware
 # ===============================================
 
-# GPU Acceleration (NVIDIA)
-pycuda
-cupy-cuda12x
+# GPU Acceleration (NVIDIA) - Disabled for multi-arch builds
+# pycuda==2023.1
+# cupy-cuda12x==13.6.0
 
 
 

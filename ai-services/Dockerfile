@@ -19,7 +19,6 @@ RUN apt-get update \
         libgomp1 \
         curl \
         git \
-        nvidia-cuda-toolkit \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/
