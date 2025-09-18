@@ -22,7 +22,7 @@ COPY . /app/
 
 RUN mkdir -p /app/logs /app/media /app/static
 
-WORKDIR /app/core
+WORKDIR /app/backend/core
 
 RUN python manage.py collectstatic --noinput
 
@@ -31,10 +31,10 @@ EXPOSE 8000
 FROM base as web
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/health/ || exit 1
-CMD ["sh", "-c", "cd /app/core && gunicorn --bind 0.0.0.0:8000 --workers 3 core.wsgi:application"]
+CMD ["sh", "-c", "cd /app/backend/core && gunicorn --bind 0.0.0.0:8000 --workers 3 core.wsgi:application"]
 
 FROM base as worker
-CMD ["sh", "-c", "cd /app/core && celery -A core worker -l info --concurrency=4"]
+CMD ["sh", "-c", "cd /app/backend/core && celery -A core worker -l info --concurrency=4"]
 
 FROM base as scheduler
-CMD ["sh", "-c", "cd /app/core && celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"]
+CMD ["sh", "-c", "cd /app/backend/core && celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"]
