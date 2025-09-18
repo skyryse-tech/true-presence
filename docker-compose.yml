@@ -28,9 +28,7 @@ services:
 
   # Django Backend API
   web:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: skyryse/tp-backend:latest
     container_name: face_attendance_backend
     ports:
       - "8000:8000"
@@ -43,7 +41,7 @@ services:
       - ALLOWED_HOSTS=localhost,127.0.0.1,${DOMAIN_NAME}
       - CORS_ALLOWED_ORIGINS=https://${DOMAIN_NAME}
     volumes:
-      - ./backend:/app
+      - .:/app
       - static_volume:/app/static
       - media_volume:/app/media
       - ./logs/backend:/app/logs
@@ -62,9 +60,7 @@ services:
 
   # AI Face Processing Workers
   ai_worker:
-    build:
-      context: .
-      dockerfile: ai-services/Dockerfile
+    image: skyryse/tp-ai-worker:latest
     container_name: face_worker
     environment:
       - WORKER_ID=worker_1
@@ -73,7 +69,7 @@ services:
       - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - MODEL_PATH=/app/models
     volumes:
-      - ./ai-services:/app
+      - .:/app
       - ./models:/app/models
       - ./logs/ai_workers:/app/logs
     depends_on:
@@ -152,9 +148,7 @@ services:
 
   # Frontend Admin Dashboard
   admin_dashboard:
-    build:
-      context: .
-      dockerfile: frontend/admin-dashboard/Dockerfile
+    image: skyryse/tp-frontend:latest
     container_name: admin_dashboard
     environment:
       - REACT_APP_API_URL=https://${DOMAIN_NAME}/api/v1
@@ -225,9 +219,7 @@ services:
 
   # Celery Worker for Background Tasks
   celery_worker:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: skyryse/tp-celery-worker:latest
     container_name: celery_worker
     command: celery -A core worker -l info --concurrency=4
     environment:
@@ -235,7 +227,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672//
     volumes:
-      - ./backend:/app
+      - .:/app
       - ./logs/celery:/app/logs
     depends_on:
       - postgres
@@ -247,16 +239,14 @@ services:
 
 
   celery_beat:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: skyryse/tp-celery-beat:latest
     container_name: celery_beat
     command: celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     environment:
       - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - REDIS_URL=redis://redis:6379/0
     volumes:
-      - ./backend:/app
+      - .:/app
       - ./logs/celery:/app/logs
     depends_on:
       - postgres
