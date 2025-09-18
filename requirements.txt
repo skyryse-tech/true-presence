@@ -72,8 +72,8 @@ seaborn==0.13.2
 # Model Optimization
 onnx==1.16.1
 onnxruntime==1.15.1
-onnxruntime-gpu==1.18.1
-tensorrt
+# onnxruntime-gpu==1.18.1  # GPU version not available for ARM64
+# tensorrt  # NVIDIA-specific, not available for ARM64
 openvino==2024.3.0
 
 # ===============================================
