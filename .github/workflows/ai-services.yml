@@ -1,4 +1,4 @@
-name: Build and Push AI Services Docker Image
+name: tp-ai-service
 
 on:
   push:
@@ -47,10 +47,14 @@ jobs:
         with:
           images: ${{ env.AI_WORKER_IMAGE }}
           tags: |
-            type=ref,event=branch
+            type=ref,event=branch,suffix=-{{sha}}
             type=ref,event=pr
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=commit-
             type=raw,value=latest,enable={{is_default_branch}}
+          flavor: |
+            latest=auto
+            prefix=
+            suffix=
 
       - name: Build and push AI worker image
         uses: docker/build-push-action@v5
