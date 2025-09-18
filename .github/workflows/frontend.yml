@@ -1,4 +1,4 @@
-name: Build and Push Frontend Docker Image
+name: tp-frontend
 
 on:
   push:

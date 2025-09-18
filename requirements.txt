@@ -73,7 +73,7 @@ seaborn==0.13.2
 onnx==1.16.1
 onnxruntime==1.15.1
 onnxruntime-gpu==1.18.1
-tensorrt==8.6.1
+tensorrt
 openvino==2024.3.0
 
 # ===============================================
@@ -195,8 +195,8 @@ python-socketio
 # ===============================================
 
 # GPU Acceleration (NVIDIA)
-pycuda==2023.1
-cupy-cuda12x==13.6.0
+pycuda
+cupy-cuda12x
 
 
 
