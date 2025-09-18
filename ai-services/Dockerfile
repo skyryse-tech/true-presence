@@ -26,11 +26,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements-simple.txt /app/
-RUN pip install --no-cache-dir -r requirements-simple.txt
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy AI services project
-COPY ai-services/ /app/
+# Copy entire project
+COPY . /app/
 
 # Create directories for models and logs
 RUN mkdir -p /app/models /app/logs

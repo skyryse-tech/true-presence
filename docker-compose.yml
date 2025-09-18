@@ -43,7 +43,7 @@ services:
       - ALLOWED_HOSTS=localhost,127.0.0.1,${DOMAIN_NAME}
       - CORS_ALLOWED_ORIGINS=https://${DOMAIN_NAME}
     volumes:
-      - ./backend:/app
+      - .:/app
       - static_volume:/app/static
       - media_volume:/app/media
       - ./logs/backend:/app/logs
@@ -73,7 +73,7 @@ services:
       - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - MODEL_PATH=/app/models
     volumes:
-      - ./ai-services:/app
+      - .:/app
       - ./models:/app/models
       - ./logs/ai_workers:/app/logs
     depends_on:
@@ -235,7 +235,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672//
     volumes:
-      - ./backend:/app
+      - .:/app
       - ./logs/celery:/app/logs
     depends_on:
       - postgres
@@ -256,7 +256,7 @@ services:
       - DATABASE_URL=postgresql://face_user:${POSTGRES_PASSWORD}@postgres:5432/face_attendance
       - REDIS_URL=redis://redis:6379/0
     volumes:
-      - ./backend:/app
+      - .:/app
       - ./logs/celery:/app/logs
     depends_on:
       - postgres

@@ -20,14 +20,17 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements-simple.txt /app/
-RUN pip install --no-cache-dir -r requirements-simple.txt
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
-COPY backend/ /app/
+COPY . /app/
 
 # Create directories for logs and media
 RUN mkdir -p /app/logs /app/media /app/static
+
+# Set the working directory to Django project
+WORKDIR /app/core
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
@@ -37,7 +40,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health/ || exit 1
+    CMD curl -f http://localhost:8000/api/health/ || exit 1
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "core.wsgi:application"]
+CMD ["sh", "-c", "cd /app/core && gunicorn --bind 0.0.0.0:8000 --workers 3 core.wsgi:application"]
