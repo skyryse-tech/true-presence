@@ -1,0 +1,130 @@
+# ===============================================
+# FACE ATTENDANCE SYSTEM - SIMPLIFIED REQUIREMENTS
+# ===============================================
+
+# Core Backend Framework
+Django==5.1.4
+djangorestframework==3.15.2
+django-cors-headers==4.6.0
+django-filter==24.2
+django-extensions==3.2.3
+django-environ==0.11.2
+python-dotenv==1.0.1
+
+# Database & ORM
+psycopg2-binary==2.9.9
+pgvector==0.2.5
+
+# Caching & Sessions
+redis==5.0.1
+django-redis==5.4.0
+hiredis==2.2.3
+
+# Message Queue & Task Processing
+pika==1.3.2
+celery==5.4.0
+django-celery-beat==2.7.0
+django-celery-results==2.5.1
+kombu==5.4.0
+
+# Authentication & Security
+PyJWT==2.9.0
+djangorestframework-simplejwt==5.3.0
+cryptography==43.0.1
+
+# API Documentation
+drf-spectacular==0.27.2
+drf-spectacular-sidecar==2024.11.1
+
+# ===============================================
+# AI/ML & Computer Vision Stack (Simplified)
+# ===============================================
+
+# Core ML Libraries
+torch==2.5.1
+torchvision==0.20.1
+
+# Computer Vision
+opencv-python==4.10.0.84
+Pillow==10.4.0
+
+# Face Detection & Recognition (simplified)
+mtcnn==0.1.1
+deepface==0.0.79
+
+# Scientific Computing
+numpy==1.26.4
+scipy==1.13.1
+pandas==2.2.2
+
+# ===============================================
+# Web & API Technologies
+# ===============================================
+
+# Web Server & ASGI
+gunicorn==23.0.0
+uvicorn==0.32.1
+whitenoise==6.8.2
+daphne==4.0.0
+
+# FastAPI for AI Services
+fastapi==0.101.1
+pydantic==2.1.1
+aiofiles==23.1.0
+
+# HTTP & Networking
+requests==2.32.3
+urllib3==2.2.2
+
+# Data Serialization
+PyYAML==6.0.2
+
+# ===============================================
+# Development & Testing
+# ===============================================
+
+# Testing Framework
+pytest==8.3.4
+pytest-django==4.9.0
+
+# Code Quality
+black==24.10.0
+isort==5.13.2
+
+# ===============================================
+# Monitoring & Logging
+# ===============================================
+
+# Logging
+loguru==0.7.0
+
+# Health Checks
+django-health-check==3.18.0
+
+# ===============================================
+# Storage & File Handling
+# ===============================================
+
+# Object Storage
+boto3==1.35.80
+minio==7.2.7
+
+# ===============================================
+# Utilities & Helpers
+# ===============================================
+
+# Date & Time
+python-dateutil==2.9.0
+pytz==2024.2
+
+# System & OS
+click==8.1.7
+tqdm==4.67.1
+
+# ===============================================
+# Real-time Communication
+# ===============================================
+
+# WebSocket
+websockets==14.1
+
