@@ -1,4 +1,3 @@
-# Backend specific .dockerignore
 *.md
 .env*
 .vscode
@@ -40,3 +39,4 @@ core/venv_backend/
 core/venv_worker/
 models/
 .github/
+ai-services/
