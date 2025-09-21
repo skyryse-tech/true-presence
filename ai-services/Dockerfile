@@ -47,7 +47,7 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
-COPY ai_services/ /app/ai_services/
+COPY ai-services/ /app/ai-services/
 
 # Create necessary directories
 RUN mkdir -p /app/models /app/logs

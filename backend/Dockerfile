@@ -42,7 +42,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY backend/ /app/backend/
-COPY ai_services/ /app/ai_services/
+COPY ai-services/ /app/ai-services/
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/media /app/static
