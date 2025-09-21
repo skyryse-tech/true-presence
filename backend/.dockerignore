@@ -4,7 +4,7 @@
 .idea
 *.log
 logs/
-ai_workers/
+ai-services/
 frontend/
 monitoring/
 storage/

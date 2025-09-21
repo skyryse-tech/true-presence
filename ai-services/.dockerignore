@@ -37,4 +37,4 @@ tests/
 **/*spec*.py
 models/
 .github/
-core/
+backend/core/
