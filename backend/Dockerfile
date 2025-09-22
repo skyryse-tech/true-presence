@@ -26,8 +26,8 @@ RUN pip install --no-cache-dir --upgrade pip \
     && find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
     && find /root/.local -name "*.pyo" -delete \
     && find /root/.local -name "*.a" -delete \
-    && find /root/.local -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true \
-    && find /root/.local -name "test" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /root/.local -path "*/django/test*" -prune -o -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /root/.local -path "*/django/test*" -prune -o -name "test" -type d -exec rm -rf {} + 2>/dev/null || true \
     && find /root/.local -name "*.dist-info" -type d -exec rm -rf {} + 2>/dev/null || true
 
 FROM base AS production
