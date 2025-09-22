@@ -1,15 +1,13 @@
-# AI Services Dockerfile
-FROM python:3.11-slim
+FROM python:3.11-slim AS base
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
+FROM base AS builder
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
@@ -21,26 +19,45 @@ RUN apt-get update \
         libxext6 \
         libxrender-dev \
         libgomp1 \
-        curl \
         git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Install Python dependencies
-COPY requirements-simple.txt /app/
-RUN pip install --no-cache-dir -r requirements-simple.txt
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --user -r requirements.txt \
+    && pip cache purge \
+    && find /root/.local -name "*.pyc" -delete \
+    && find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
-# Copy AI services project
-COPY ai-services/ /app/
+FROM base AS production
 
-# Create directories for models and logs
-RUN mkdir -p /app/models /app/logs
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libopencv-dev \
+        python3-opencv \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        libgomp1 \
+        curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Expose port
+COPY --from=builder /root/.local /root/.local
+
+COPY ai-services/ /app/ai-services/
+
+ENV PYTHONPATH=/app
+ENV PATH=/root/.local/bin:$PATH
+
+RUN find /app -name "*.pyc" -delete \
+    && find /app -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+
 EXPOSE 8001
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8001/health/ || exit 1
 
-# Run the AI service
-CMD ["python", "worker.py"]
+CMD ["python", "ai-services/worker.py"]
