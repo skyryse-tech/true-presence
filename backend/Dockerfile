@@ -44,7 +44,7 @@ RUN apt-get update \
 COPY --from=builder /root/.local /root/.local
 
 COPY backend/core/ /app/backend/core/
-COPY backend/attendance_api/ /app/backend/attendance_api/ 2>/dev/null || true
+COPY backend/apps/ /app/backend/apps/
 
 WORKDIR /app/backend/core
 

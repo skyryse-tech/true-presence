@@ -57,9 +57,7 @@ RUN apt-get update \
 
 COPY --from=builder /root/.local /root/.local
 
-COPY ai-services/worker.py /app/ai-services/
-COPY ai-services/__init__.py /app/ai-services/ 2>/dev/null || true
-COPY ai-services/face_processor.py /app/ai-services/ 2>/dev/null || true
+COPY ai-services/ /app/ai-services/
 
 ENV PYTHONPATH=/app
 ENV PATH=/root/.local/bin:$PATH
