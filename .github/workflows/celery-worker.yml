@@ -5,7 +5,6 @@ on:
     branches: [main, develop, mvp/*]
     paths:
       - 'backend/**'
-      - 'requirements.txt'
 
 env:
   REGISTRY: docker.io
