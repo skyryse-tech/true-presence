@@ -1,4 +1,4 @@
-name: tp-backend
+name: tp-celery-beat
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  BACKEND_IMAGE: skyryse/tp-backend
+  CELERY_BEAT_IMAGE: skyryse/tp-celery-beat
 
 jobs:
   build-and-push:
@@ -36,16 +36,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.BACKEND_IMAGE }}
+          images: ${{ env.CELERY_BEAT_IMAGE }}
           tags: |
             type=raw,value=latest
 
-      - name: Build and push backend image
+      - name: Build and push celery beat image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: backend/Dockerfile
-          target: web
+          target: scheduler
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
